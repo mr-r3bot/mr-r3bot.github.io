@@ -8,9 +8,30 @@ description: Haha
 
 ## ProxyShell Microsoft Exchange 
 
+Reference: 
+- The original talk from Orange Tsai: https://i.blackhat.com/USA21/Wednesday-Handouts/us-21-ProxyLogon-Is-Just-The-Tip-Of-The-Iceberg-A-New-Attack-Surface-On-Microsoft-Exchange-Server.pdf?fbclid=IwAR2V0-4k2yb8dmPP5Mksd8iHYTOfE6sBwygMt4wjq3M9be8Tw6TlH0andhA
+- Amazing research write up from @peterjson and Jang: https://peterjson.medium.com/reproducing-the-proxyshell-pwn2own-exploit-49743a4ea9a1
+- https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/
+
+
 ### 1. Pre-auth SSRF
 
-The Fatal erase
+The endpoint `/autodiscover.json` is one of the endpoints that we can access without authentication
+
+<img width="1413" alt="image" src="https://user-images.githubusercontent.com/37280106/129542517-f35ab234-4613-491c-844a-75e88fbf8da8.png">
+
+If our URL end with `/autodiscover.json` , `ClientRequest` will fetch the param `Email` 
+
+<img width="1262" alt="image" src="https://user-images.githubusercontent.com/37280106/129544327-4c4fe18e-eb19-4466-a616-aff25e3a4087.png">
+
+`explicitLogonAddress` must contains valid email address
+
+So if our `explicitLogonAddress=/autodiscover/autodiscover.json?a=a@test.com` then the `/autodiscover/autodiscover.json?a=a@test.com` part will be removed from the URI
+
+When preparing request to send to backend internal, Exchange will generate Kerberos auth header and attach into Authorization header. This is why we can reach some other endpoint without any authentication
+
+
+The Fatal erase: 
 
 ```text
 GET /autodiscover/autodiscover.json?@test.com/mapi/nspi?&Email=autodiscover/autodiscover.json%3F@test.com HTTP/2
@@ -54,6 +75,7 @@ Content-Length: 553
 <body>
 <p>Exchange MAPI/HTTP Connectivity Endpoint<br><br>Version: 15.1.2176.9<br>Vdir Path: /mapi/nspi/<br><br></p><p>
 ```
+
 
 
 ### 2. Exchange Powershell Remoting
