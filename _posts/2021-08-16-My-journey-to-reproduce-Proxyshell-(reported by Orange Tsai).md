@@ -2,7 +2,7 @@
 layout: post
 title:  "My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai)"
 date:   2021-08-16 16:00:00 +0700
-categories: Exploit-Development
+categories: researches
 description: Haha
 ---
 
