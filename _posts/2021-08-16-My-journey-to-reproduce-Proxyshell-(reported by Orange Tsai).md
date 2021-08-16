@@ -76,6 +76,8 @@ Content-Length: 553
 <p>Exchange MAPI/HTTP Connectivity Endpoint<br><br>Version: 15.1.2176.9<br>Vdir Path: /mapi/nspi/<br><br></p><p>
 ```
 
+<img width="1146" alt="image" src="https://user-images.githubusercontent.com/37280106/129546779-695fca9d-dd4c-47d2-a498-5feb214f5df5.png">
+
 
 
 ### 2. Exchange Powershell Remoting
