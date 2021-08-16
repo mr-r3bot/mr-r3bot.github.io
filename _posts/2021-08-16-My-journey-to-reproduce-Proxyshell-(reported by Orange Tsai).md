@@ -3,7 +3,7 @@ layout: post
 title:  "My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai)"
 date:   2021-08-16 16:00:00 +0700
 categories: researches
-description: Haha
+description: Research analysis and develop a working exploit poc script 
 ---
 
 ## ProxyShell Microsoft Exchange 
