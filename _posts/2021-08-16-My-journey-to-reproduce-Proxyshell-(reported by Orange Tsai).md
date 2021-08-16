@@ -9,9 +9,9 @@ description: Haha
 ## ProxyShell Microsoft Exchange 
 
 Reference: 
-- The original talk from Orange Tsai: https://i.blackhat.com/USA21/Wednesday-Handouts/us-21-ProxyLogon-Is-Just-The-Tip-Of-The-Iceberg-A-New-Attack-Surface-On-Microsoft-Exchange-Server.pdf?fbclid=IwAR2V0-4k2yb8dmPP5Mksd8iHYTOfE6sBwygMt4wjq3M9be8Tw6TlH0andhA
-- Amazing research write up from @peterjson and Jang: https://peterjson.medium.com/reproducing-the-proxyshell-pwn2own-exploit-49743a4ea9a1
-- https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/
+- The original talk from Orange Tsai: [https://i.blackhat.com/USA21/Wednesday-Handouts/us-21-ProxyLogon-Is-Just-The-Tip-Of-The-Iceberg-A-New-Attack-Surface-On-Microsoft-Exchange-Server.pdf?fbclid=IwAR2V0-4k2yb8dmPP5Mksd8iHYTOfE6sBwygMt4wjq3M9be8Tw6TlH0andhA](url)
+- Amazing research write up from @peterjson and Jang:[ https://peterjson.medium.com/reproducing-the-proxyshell-pwn2own-exploit-49743a4ea9a1](url)
+- [https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/](url)
 
 
 ### 1. Pre-auth SSRF
@@ -83,10 +83,16 @@ We archieved the Pre-auth SSRF, direct access to Exchange Server back-end !!!
 
 ### 2. Exchange Powershell Remoting
 
-We need to look for the way to access `/powershell` endpoint
+The Exchange PowerShell Remoting is built upon PowerShell API and uses the Runspace for isolations. All operations are based on WinRM protocol
+
+We need to look for the way to access `/powershell` endpoint, by accessing `/powershell` endpoint, we are one-step closer to the final goal - RCE
+
 From Orange Tsai talks, he said that because we access the endpoint with `NT\SYSTEM` priviledge, we will fail the business logic since `SYSTEM` does not have any mailbox.
 
 We cannot forge the `X-CommonAccessToken` because it's in the blacklisted cookies/headers
+
+<img width="1318" alt="image" src="https://user-images.githubusercontent.com/37280106/129550275-02ca7e41-d165-49da-8bf7-0ba303b5ab98.png">
+
 
 
 A few module we should pay attention to
@@ -97,13 +103,29 @@ Microsoft.Exchange.PwshClient
 Microsoft.Exchange.Configuration.RemotePowershellBackendCmdletProxyModule
 ```
 
-This module is called before the `BackendRehydrationModule`
+
+From the Orange Tsai's talk, we know that the `BackendRehydrationModule` play an important part in authentication process
+
+<img width="1207" alt="image" src="https://user-images.githubusercontent.com/37280106/129551467-54e67b8e-3232-483b-9bcc-ddfe14de00eb.png">
+
+>  Microsoft.Exchange.Security.Authentication.BackendRehydrationModule
+
+<img width="1048" alt="image" src="https://user-images.githubusercontent.com/37280106/129550769-a21e228c-5ef9-4fd2-89c4-5152a4fe117c.png">
+
+We cannot access `/powershell` endpoint because we don't have `X-CommonAccessToken` header, we cannot forge the `X-CommonAccessToken: <token>` to impersonate other user because `X-CommonAccessToken` is is the blacklisted headers. So what to do ?
+
+Lucky for us, this module is called before the `BackendRehydrationModule` and it extract Access-Token fromURL
 
 
 
 > Microsoft.Exchange.Configuration.RemotePowershellBackendCmdletProxyModule
 
-<img width="698" alt="image" src="https://user-images.githubusercontent.com/37280106/129539952-0a312293-c8b9-41c7-89b4-9146591c3722.png">
+<img width="1027" alt="image" src="https://user-images.githubusercontent.com/37280106/129552591-36cdf54c-ae20-462a-954a-f7d4e21d981c.png">
+
+
+<img width="1033" alt="image" src="https://user-images.githubusercontent.com/37280106/129552443-e99e7e9b-7690-476f-8ca4-73d857621627.png">
+
+The code logic look for `X-CommonAccessToken` header, if the header is not exist, it will extract `X-RPS-CAT` param and deserialize it as a Access Token
 
 
 > Microsoft.Exchange.Security.Authorization.CommonAccessToken ( Serialization)
@@ -116,7 +138,24 @@ This module is called before the `BackendRehydrationModule`
 
 <img width="1073" alt="image" src="https://user-images.githubusercontent.com/37280106/129540057-3b6def40-f842-4283-aca9-13c20ef48842.png">
 
+The pseudo code for the token deserialization:
+```text
+V + this.Version + T + this.TokenType C + compress + data
+if compress => decompress
+if AccessTokenType is Windows => DeserializeFromToken
+```
+
+<img width="970" alt="image" src="https://user-images.githubusercontent.com/37280106/129553511-6abd50c8-3fc3-49a9-8c92-59b0311e7916.png">
+
+<img width="1074" alt="image" src="https://user-images.githubusercontent.com/37280106/129553904-94303325-c9b9-485a-a082-dc6de45305f9.png">
 
 
-### 3. Working with remote Powershell
-...
+Pseudo code for DeserializeFromToken
+```
+A + this.AuthenticationType + L + this.LogonName + U + UserSID + G + Group Length + GroupSids
+```
+
+Now, we can craft an admin privilege CommonAccessToken via “X-Rps-CAT” parameter since we know how the Token is constructed
+
+### 3. Working with remote Powershell and archived RCE
+Working on it ...
