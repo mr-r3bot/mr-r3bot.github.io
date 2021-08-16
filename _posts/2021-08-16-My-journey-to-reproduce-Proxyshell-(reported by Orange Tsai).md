@@ -78,6 +78,7 @@ Content-Length: 553
 
 <img width="1146" alt="image" src="https://user-images.githubusercontent.com/37280106/129546779-695fca9d-dd4c-47d2-a498-5feb214f5df5.png">
 
+We archieved the Pre-auth SSRF, direct access to Exchange Server back-end !!!
 
 
 ### 2. Exchange Powershell Remoting
@@ -86,6 +87,7 @@ We need to look for the way to access `/powershell` endpoint
 From Orange Tsai talks, he said that because we access the endpoint with `NT\SYSTEM` priviledge, we will fail the business logic since `SYSTEM` does not have any mailbox.
 
 We cannot forge the `X-CommonAccessToken` because it's in the blacklisted cookies/headers
+
 
 A few module we should pay attention to
 
