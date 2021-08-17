@@ -23,7 +23,7 @@ github_username:  mr-r3bot
 
 # Build settings
 markdown: kramdown
-theme: minima
+theme: jekyll-theme-slate
 plugins:
   - jekyll-feed
 
