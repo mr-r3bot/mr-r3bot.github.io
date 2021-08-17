@@ -208,5 +208,10 @@ def gen_token(email: str, sid: str):
 
 ```
 
+Use the token to request to `/powershell` endpoint, if the server return with 200 status code, that means the token is accepted
+
+<img width="1086" alt="image" src="https://user-images.githubusercontent.com/37280106/129684825-739bcc15-0c50-4bf9-a0b6-d1716c272970.png">
+
+
 ### 3. Working with remote Powershell and archived RCE
 Working on it ...
