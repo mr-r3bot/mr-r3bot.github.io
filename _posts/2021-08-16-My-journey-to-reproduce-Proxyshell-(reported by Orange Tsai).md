@@ -212,6 +212,7 @@ Use the token to request to `/powershell` endpoint, if the server return with 20
 
 <img width="1086" alt="image" src="https://user-images.githubusercontent.com/37280106/129684825-739bcc15-0c50-4bf9-a0b6-d1716c272970.png">
 
+So now, we can execute arbitrary Powershell code on the exchange server with Admin priviledge. But the Powershell Cmdlet module come with a very limited list of commands that we can execute. We want more than that !!!
 
-### 3. Working with remote Powershell and archived RCE
+### 3. Working with remote Powershell and archieved the post-auth RCE
 Working on it ...
