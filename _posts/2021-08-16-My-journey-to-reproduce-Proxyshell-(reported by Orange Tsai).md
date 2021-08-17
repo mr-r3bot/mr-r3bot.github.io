@@ -159,7 +159,8 @@ A + this.AuthenticationType + L + this.LogonName + U + UserSID + G + Group Lengt
 ```
 
 Now, we can craft an admin privilege CommonAccessToken via “X-Rps-CAT” parameter since we know how the Token is constructed
-I copy the `gen_token` function from [https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/](this amazing write-up) to help me build the poc script/
+
+I copy the `gen_token` function from [this amazing write up](https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/) to help me build the poc script/
 ```python
 def gen_token(email: str, sid: str):
     # Credits: https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/
