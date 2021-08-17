@@ -26,8 +26,16 @@ If our URL end with `/autodiscover.json` , `ClientRequest` will fetch the param 
 
 `explicitLogonAddress` must contains valid email address
 
-So if our `explicitLogonAddress=/autodiscover/autodiscover.json?a=a@test.com` then the `/autodiscover/autodiscover.json?a=a@test.com` part will be removed from the URI
-ex: `http://exchange.local/autodiscover/autodiscover.json@test.com/mapi/nspi?&Email=autodiscover/autodiscover.json%3F@test.com` will become -> `http://exchange.local/mapi/nspi?&Email=autodiscover/autodiscover.json%3F@test.com`
+So if our `explicitLogonAddress=/autodiscover/autodiscover.json?a=a@test.com` then the `/autodiscover/autodiscover.json?a=a@test.com` part will be removed from the URI.
+
+ex: 
+```
+http://exchange.local/autodiscover/autodiscover.json@test.com/mapi/nspi?&Email=autodiscover/autodiscover.json%3F@test.com
+```
+Will become
+```
+http://exchange.local/mapi/nspi?&Email=autodiscover/autodiscover.json%3F@test.com
+```
 
 When preparing request to send to backend internal, Exchange will generate Kerberos auth header and attach into Authorization header. This is why we can reach some other endpoint without any authentication
 
