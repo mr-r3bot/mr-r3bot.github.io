@@ -216,7 +216,7 @@ So now, we can execute arbitrary Powershell code on the exchange server with Adm
 
 ### 3. Working with remote Powershell and archieved the post-auth RCE
 
-Since we are now an admin of Exchange Server, there many many potential comamnds to abuse to get Post Auth RCE. I will use the `New-MailboxExportRequest` command
+Since we are now an admin of Exchange Server, there are many potential comamnds to abuse to get Post Auth RCE. I will use the `New-MailboxExportRequest` command
 
 According to [Microsoft docs](https://docs.microsoft.com/en-us/powershell/module/exchange/new-mailboxexportrequest?view=exchange-ps),  `New-MailboxExportRequest` allow us to export user's mailbox to a file. That allow us to write arbitrary file to any location, we can write our shell to web root location of Exchange server.
 
@@ -227,6 +227,8 @@ New-MailboxExportRequest -Mailbox AylaKol -FilePath "\\SERVER01\PSTFileShare\Ayl
 
 The exported file is encoded and in `PST` format. Now come the fun part, how do we write the data to mailbox so that after the mail is exported into a PST file, it still a useable shell for us ?. 
 
-...
+
+<img width="1023" alt="image" src="https://user-images.githubusercontent.com/37280106/129873103-5b60af6e-8244-4e6f-9daa-6f40e5565389.png">
+
 
 
