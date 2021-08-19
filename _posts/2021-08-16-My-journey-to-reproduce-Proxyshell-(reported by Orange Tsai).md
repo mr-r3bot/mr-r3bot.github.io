@@ -227,8 +227,32 @@ New-MailboxExportRequest -Mailbox AylaKol -FilePath "\\SERVER01\PSTFileShare\Ayl
 
 The exported file is encoded and in `PST` format. Now come the fun part, how do we write the data to mailbox so that after the mail is exported into a PST file, it still a useable shell for us ?. 
 
+Follow Orange Tsai's talk, he showed us how to encode the payload first and then send it to the Exchange Server, when the Exchange server try to save and export the file and encode it again, it will turns it into the orginal malicious code . This [MS-doc](https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-pst/5faf4800-645d-49d1-9457-2ac40eb467bd) will help us how to encode our shell before sending.
+
+Now we know how to encode our payload, how do we send mail to the Admin's mailbox ?
+
+The original talk from Orange Tsai, he delivered the payload through SMTP, but I like the Jang and PeterJson's way more. That is [EWS Impersonation](https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/impersonation-and-ews-in-exchange)
+
+By sending request to `/EWS/exchange.asmx` . We can create an email and save it in `Drafts` for any user via SOAP header `SerializedSecurityContext`
+<img width="842" alt="image" src="https://user-images.githubusercontent.com/37280106/130030757-cc6ac13e-a8d4-4d75-993d-e44ebde5f26b.png">
+
 
 <img width="1023" alt="image" src="https://user-images.githubusercontent.com/37280106/129873103-5b60af6e-8244-4e6f-9daa-6f40e5565389.png">
 
+That's for the Post-Auth RCE part, for communicating with Remote Powershell, I follow the other researchers's way. Use  [pypsrp](https://www.bloggingforlogging.com/2018/08/14/powershell-remoting-on-python/), implement the proxy and forward requests to communicate with wsman
 
+### 4. Chaining everything together - the ProxyShell
 
+Now we have everything we need, let's chain it together:
+- Use the Pre-auth SSRF to generate the token
+- Use the token to request to Remote Powershell server
+- Send email contains the malicious payload to user
+- Assign Mailbox Import/Export role to our current session
+- Export malicious email to webroot
+- Enjoy the shell.
+
+### POC video
+
+<video width="320" height="240" controls>
+  <source type="video/mp4" src="https://robocop79.github.io/Websiteland//Twitter/FLT.mp4">
+</video>
