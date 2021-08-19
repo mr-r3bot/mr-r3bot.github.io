@@ -169,6 +169,7 @@ A + this.AuthenticationType + L + this.LogonName + U + UserSID + G + Group Lengt
 Now, we can craft an admin privilege CommonAccessToken via “X-Rps-CAT” parameter since we know how the Token is constructed
 
 I copy the `gen_token` function from [this amazing write up](https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/) to help me build the poc script/
+
 ```python
 def gen_token(email: str, sid: str):
     # Credits: https://y4y.space/2021/08/12/my-steps-of-reproducing-proxyshell/
@@ -231,9 +232,13 @@ Follow Orange Tsai's talk, he showed us how to encode the payload first and then
 
 Now we know how to encode our payload, how do we send mail to the Admin's mailbox ?
 
-The original talk from Orange Tsai, he delivered the payload through SMTP, but I like the Jang and PeterJson's way more. That is [EWS Impersonation](https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/impersonation-and-ews-in-exchange)
+The original talk from Orange Tsai, he delivered the payload through SMTP, but I like the Jang and PeterJson's way more. That is [EWS Impersonation]
+
+(https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/impersonation-and-ews-in-exchange)
 
 By sending request to `/EWS/exchange.asmx` . We can create an email and save it in `Drafts` for any user via SOAP header `SerializedSecurityContext`
+
+
 <img width="842" alt="image" src="https://user-images.githubusercontent.com/37280106/130030757-cc6ac13e-a8d4-4d75-993d-e44ebde5f26b.png">
 
 
@@ -248,9 +253,14 @@ Now we have everything we need, let's chain it together:
 - Use the token to request to Remote Powershell server
 - Send email contains the malicious payload to user
 - Assign Mailbox Import/Export role to our current session
+
+```powershell
+New-ManagementRoleAssignment -Role "Mailbox Import Export" -User email@email
+```
+
 - Export malicious email to webroot
 - Enjoy the shell.
 
 ### POC video
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/Ma921_3wtN4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="640" height="320" src="https://www.youtube.com/embed/Ma921_3wtN4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
