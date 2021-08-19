@@ -253,6 +253,6 @@ Now we have everything we need, let's chain it together:
 
 ### POC video
 
-<video width="320" height="240" controls>
-  <source type="video/mp4" src="https://robocop79.github.io/Websiteland//Twitter/FLT.mp4">
+<video width="640" height="480" controls>
+  <source type="video/mp4" src="https://www.youtube.com/watch?v=Ma921_3wtN4">
 </video>
