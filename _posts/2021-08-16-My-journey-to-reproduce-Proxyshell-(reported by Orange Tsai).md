@@ -253,6 +253,4 @@ Now we have everything we need, let's chain it together:
 
 ### POC video
 
-<video width="640" height="480" controls>
-  <source type="video/mp4" src="https://www.youtube.com/watch?v=Ma921_3wtN4">
-</video>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Ma921_3wtN4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
