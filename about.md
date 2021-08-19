@@ -1,18 +1,15 @@
 ---
 layout: page
-title: About
+title: About Me
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](https://jekyllrb.com/)
+Hi everyone,
+I'm Quang Vo, I'm currently working full-time as Security Engineer, part-time bug bounty hunter. I mostly focus on Web Security and Vulnerabilty research.
+I love Reverse Engineering, Vulnerability Research, Web app security
 
-You can find the source code for Minima at GitHub:
-[jekyll][jekyll-organization] /
-[minima](https://github.com/jekyll/minima)
-
-You can find the source code for Jekyll at GitHub:
-[jekyll][jekyll-organization] /
-[jekyll](https://github.com/jekyll/jekyll)
-
-
-[jekyll-organization]: https://github.com/jekyll
+Where you can find me:
+- Github: https://github.com/mr-r3bot ( where I publish poc scripts )
+- Twitter: https://twitter.com/mr_r3bot
+- Bugcrowd profile: https://bugcrowd.com/m3_robot
+- Intigriti profile: http://app.intigriti.com/profile/m3_robot
