@@ -255,9 +255,12 @@ So now, we can execute arbitrary Powershell code on the exchange server with Adm
 
 ### 3. Working with remote Powershell and archieved the post-auth RCE
 
-Since we are now an admin of Exchange Server, there are many potential comamnds to abuse to get Post Auth RCE. I will use the `New-MailboxExportRequest` command
+Since we are now an admin of Exchange Server, there are many potential commands to abuse to get Post Auth RCE. I will use the `New-MailboxExportRequest` command
 
 According to [Microsoft docs](https://docs.microsoft.com/en-us/powershell/module/exchange/new-mailboxexportrequest?view=exchange-ps),  `New-MailboxExportRequest` allow us to export user's mailbox to a file. That allow us to write arbitrary file to any location, we can write our shell to web root location of Exchange server.
+
+
+This is where the arbitrary write file happens, the API doesn't check that the exported files have to be a certain format extension, like `.pst,...`, so we can use that and export our payload to any file extension, like `abc.aspx` for example 
 
 ex:
 ```powershell
@@ -448,9 +451,7 @@ void main() {
 
 Now we know how to encode our payload, how do we send mail to the Admin's mailbox ?
 
-The original talk from Orange Tsai, he delivered the payload through SMTP, but I like the Jang and PeterJson's way more. That is [EWS Impersonation]
-
-(https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/impersonation-and-ews-in-exchange)
+The original talk from Orange Tsai, he delivered the payload through SMTP, but I like the Jang and PeterJson's way more. That is [EWS Impersonation](https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/impersonation-and-ews-in-exchange)
 
 By sending request to `/EWS/exchange.asmx` . We can create an email and save it in `Drafts` for any user via SOAP header `SerializedSecurityContext`
 
@@ -483,6 +484,6 @@ New-ManagementRoleAssignment -Role "Mailbox Import Export" -User email@email
 
 ### Conclusion
 
-This is a very nice exploit chain. For me, it wasn't easy to reproduce this at all, I have to read and research a lot, that was the most fun part and I learnt a lot. Orange Tsai is an amazing research and I'm a big fan of his work.
+This is a very nice exploit chain. For me, it wasn't easy to reproduce this at all, I have to read and research a lot, that was the most fun part and I learnt a lot. Orange Tsai is an amazing researcher and I'm a big fan of his work.
 
 I still haven't understood the whole exploit chain, especially the Permuative Encoding part, so if anyone knows, please contact me via Twitter and explain it to me. I will appreciate it a lot ;) 
