@@ -449,6 +449,11 @@ void main() {
 
 ```
 
+Got encodeded data in base64 
+
+<img width="852" alt="image" src="https://user-images.githubusercontent.com/37280106/130055140-a525182a-6261-4638-ad25-b5f27ab9b170.png">
+
+
 Now we know how to encode our payload, how do we send mail to the Admin's mailbox ?
 
 The original talk from Orange Tsai, he delivered the payload through SMTP, but I like the Jang and PeterJson's way more. That is [EWS Impersonation](https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/impersonation-and-ews-in-exchange)
