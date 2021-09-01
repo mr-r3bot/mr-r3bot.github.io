@@ -9,8 +9,9 @@ description: Research analysis and develop a working exploit poc script
 
 ## OGNL Injection on Confluence
 
-Twitter is always the best place to keep up-to-date with the newest CVE or exploit. CVE-2021-26084 caught my eyes because the bug was critical and Jira Confluence 
-is one of the most common software for IT companies ( I think ?, because all of the companies I worked for, they all use Jira confluence ), I don't have much chance to review Java-based product and I've been avoiding doing research on Java-based product, so I think this is a good time to start and it's a Web application bug - my expertise ;). 
+- Twitter is always the best place to keep up-to-date with the newest CVE or exploit. CVE-2021-26084 caught my eyes because the bug was critical and Jira Confluence 
+is one of the most common software for IT companies ( I think ?, because all of the companies I worked for, they all use Jira confluence ).
+- I don't have much chance to review Java-based product and I've been avoiding doing research on Java-based product, so I think this is a good time to start and it's a Web application bug - my expertise ;). 
 
 ### Setup
 Quick start-up with docker-compose
