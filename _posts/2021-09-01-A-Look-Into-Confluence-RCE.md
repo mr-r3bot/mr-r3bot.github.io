@@ -6,3 +6,9 @@ categories: research
 author: Quang Vo
 description: Research analysis and develop a working exploit poc script 
 ---
+
+## OGNL Injection on Confluence
+
+
+
+### 1. The reflected value
