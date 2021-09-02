@@ -15,7 +15,7 @@ is one of the most common software for IT companies ( I think ?, because all of 
 - I don't have much chance to review Java-based product and I've been avoiding doing research on Java-based product, so I think this is a good time to start and it's a Web application bug - my expertise ;). 
 
 Reference:
-- Amazing write-up from [@iamnoooob](https://twitter.com/iamnoooob): https://github.com/httpvoid/writeups/blob/main/Confluence-RCE.md
+- Amazing write-up from [@iamnoooob](https://twitter.com/iamnoooob): [https://github.com/httpvoid/writeups/blob/main/Confluence-RCE.md](https://github.com/httpvoid/writeups/blob/main/Confluence-RCE.md)
 
 ### Setup
 Quick start-up with docker-compose
@@ -123,3 +123,11 @@ Now, we should know what this line mean in the code
 ```
 It's expecting a `queryString` variable, so why not give it what it wants ?
 
+<img width="1102" alt="image" src="https://user-images.githubusercontent.com/37280106/131775547-0ad48d64-fa9f-4032-986a-91e64911dfa8.png">
+
+
+We see that the value `abc` is reflected in the template. To this step, I think it will be an easy bug because the value was reflected, so I setup my wordlist and brute force to see we can have a Template Injection but I have no luck :(.
+
+I tried this payload with intention to break out of the quote `'abc+#{7*7}`. But server response with `&amp;#39;aaa+#{7*7}`
+
+<img width="925" alt="image" src="https://user-images.githubusercontent.com/37280106/131776094-9c872f33-0a87-436d-adff-c11916586922.png">
