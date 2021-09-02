@@ -23,9 +23,12 @@ github_username:  mr-r3bot
 
 # Build settings
 markdown: kramdown
+kramdown:
+  parse_block_html: true
 theme: jekyll-theme-cayman
 plugins:
   - jekyll-feed
+  - jekyll-toc
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
