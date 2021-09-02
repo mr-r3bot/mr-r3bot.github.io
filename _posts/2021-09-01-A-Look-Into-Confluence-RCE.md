@@ -74,7 +74,7 @@ The version that I use for this research is 7.12.4
 For the Atlassian Confluence's source code, you can download it here: [https://www.atlassian.com/software/confluence/download-archives](https://www.atlassian.com/software/confluence/download-archives)
 
 
-### The bug
+### The Patch Diff
 
 First, we have to compare the diff between the patched version vs the vulnerable version. Luckily, Atlassian released the [hot fix](https://confluence.atlassian.com/doc/files/1077906215/1077916296/2/1629936383093/cve-2021-26084-update.sh) in bash script so we can easily read the bash script and find out what changed. 
 
@@ -97,4 +97,29 @@ In the form, we see the `doenterpagevariables.action` action in `<form>` tag.
 Try to visit the `/pages/doenterpagevariables.action ` URL:
 
 <img width="1061" alt="image" src="https://user-images.githubusercontent.com/37280106/131708355-b9af3e56-a6fb-44fc-bf06-c73445ccf558.png">
+
+
+### The `.vm` file extension
+
+When we see something new that we probably haven't hearded of it before, we should **read the doc** and find out what it is. I love to read the doc and learn about new thing, that's one of my favorite part of doing 1day analysis.
+
+[.vm file extension](https://velocity.apache.org/engine/1.7/user-guide.html)
+
+After reading it, we know we may be dealing with SSTI bug here since Velocity is a Java-based template engine.
+
+Some basic syntax of Vector engine
+```template
+#set( $foo = $bar + 3 )
+#{7*7} = 49
+```
+
+This knowledge will help us a lot to conduct more in depth research.
+
+### The bug
+
+Now, we should know what this line mean in the code
+```
+#tag ("Hidden" "name='queryString'" "value='$!queryString'")
+```
+It's expecting a `queryString` variable, so why not give it what it wants ?
 
