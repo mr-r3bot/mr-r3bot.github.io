@@ -6,6 +6,7 @@ categories: research
 author: Quang Vo
 toc: true
 description: Research analysis and develop a working exploit poc script 
+tags: CVE-2021-26084, Web Security
 ---
 
 ## OGNL Injection on Confluence
@@ -131,3 +132,12 @@ We see that the value `abc` is reflected in the template. To this step, I think 
 I tried this payload with intention to break out of the quote `'abc+#{7*7}`. But server response with `&amp;#39;aaa+#{7*7}`
 
 <img width="925" alt="image" src="https://user-images.githubusercontent.com/37280106/131776094-9c872f33-0a87-436d-adff-c11916586922.png">
+
+If you are a Web Security Engineer, you should be familiar with the encoding/double-encoding the payload to trigger XSS, SSTI. Same methods can be apply here like: hex-encoding, unicode-encoding, decimal-encoding, ....
+
+After trying all the methods above, the Unicode Encoding payload `\u0027` gave us an interesting result. The `value` field completely disappeared, `\u0027` is the 
+`'` character, this indicate us that we broke something, may be broke out of context of the string or something else ?
+
+
+`aaa%5Cu0027%2B%5Cu0027bbb`
+
