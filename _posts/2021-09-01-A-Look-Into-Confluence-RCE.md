@@ -138,6 +138,19 @@ If you are a Web Security Engineer, you should be familiar with the encoding/dou
 After trying all the methods above, the Unicode Encoding payload `\u0027` gave us an interesting result. The `value` field completely disappeared, `\u0027` is the 
 `'` character, this indicate us that we broke something, may be broke out of context of the string or something else ?
 
+<img width="923" alt="image" src="https://user-images.githubusercontent.com/37280106/131778008-1785861c-d29b-4d01-a6f7-a093eb6cf61f.png">
 
-`aaa%5Cu0027%2B%5Cu0027bbb`
+Let's try some string concatenation with payload `aaa%5Cu0027%2B%5Cu0027bbb` . Vector Engine is quite powerful and it can do most things that Java can.
+
+<img width="913" alt="image" src="https://user-images.githubusercontent.com/37280106/131778193-68a162b4-b371-4a62-a6de-366739dc3258.png">
+
+Boom !!!. Our input was concatenated, which mean is we broke out of the context.
+
+Now should we try some Math operation ?.
+
+<img width="927" alt="image" src="https://user-images.githubusercontent.com/37280106/131778369-f63bba80-b6e0-40b6-a6e3-cc06fc5a0aad.png">
+
+There we go :). Now we have our Pre-auth OGNL Injection :) .
+
+
 
