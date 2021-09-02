@@ -153,4 +153,6 @@ Now should we try some Math operation ?.
 There we go :). Now we have our Pre-auth OGNL Injection :) .
 
 
+### Escalate the Template Injection.
 
+One of the most common technique to exploit Template Injection is climbing the object hierarchy. We climb up to the parent object, and then call java runtime environment to get RCE, sound easy right ?.
