@@ -181,3 +181,12 @@ aaa%5Cu0027%2B%23%7B%5Cu0022%5Cu0022%5B%5Cu0022class%5Cu0022%5D.forName%28%5Cu00
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/37280106/131952888-92aca55a-5d6a-4853-a912-2d8549286a3d.png">
 
+Due to the limitation of `java.lang.Runtime.getRunTime().exec()`, we could not use any Bash expression like:
+```
+``
+|
+&
+<>
+```
+
+So although we have RCE, we are still limited to the commands that we can execute.
