@@ -16,7 +16,6 @@
     <a id="skip-to-content" href="#content">Skip to the content.</a>
 
     <header class="page-header" role="banner">
-       <a class="btn" href="/">Home</a>
            {%- assign default_paths = site.pages | map: "path" -%}
           {%- assign page_paths = site.header_pages | default: default_paths -%}
           {% if site.github.is_project_page %}
@@ -32,7 +31,7 @@
             <a class="btn" href="{{ my_page.url | relative_url }}">{{ my_page.title | escape }}</a>
             {%- endif -%}
           {%- endfor -%}
-
+             <a class="btn" href="/">Home</a>
     </header>
 
     <main id="content" class="main-content" role="main">
