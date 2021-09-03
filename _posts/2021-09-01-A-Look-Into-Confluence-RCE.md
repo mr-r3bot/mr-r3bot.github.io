@@ -156,3 +156,9 @@ There we go :). Now we have our Pre-auth OGNL Injection :) .
 ### Escalate the Template Injection.
 
 One of the most common technique to exploit Template Injection is climbing the object hierarchy. We climb up to the parent object, and then call java runtime environment to get RCE, sound easy right ?.
+
+Usually, we will use `"".getClass()` to get instance of a class and then perform Java reflection to call Java runtime and execute commands. But our OGNL expression has a blacklist of methods and variables.
+
+<img width="755" alt="image" src="https://user-images.githubusercontent.com/37280106/131948296-928062c9-ee78-4cbe-8426-0ae0d61db0cf.png">
+
+As you can see, all the unsafe methods and properties are blacklisted
