@@ -140,7 +140,7 @@ After trying all the methods above, the Unicode Encoding payload `\u0027` gave u
 
 <img width="923" alt="image" src="https://user-images.githubusercontent.com/37280106/131778008-1785861c-d29b-4d01-a6f7-a093eb6cf61f.png">
 
-Let's try some string concatenation with payload `aaa%5Cu0027%2B%5Cu0027bbb` . Vector Engine is quite powerful and it can do most things that Java can.
+Let's try some string concatenation with payload `aaa%5Cu0027%2B%5Cu0027bbb` . Velocity Engine is quite powerful and it can do most things that Java can.
 
 <img width="913" alt="image" src="https://user-images.githubusercontent.com/37280106/131778193-68a162b4-b371-4a62-a6de-366739dc3258.png">
 
