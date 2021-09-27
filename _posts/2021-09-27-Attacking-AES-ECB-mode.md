@@ -53,6 +53,8 @@ if __name__ == '__main__':
 
 So our ciphertext will have format: `Cipher text = flag + user_input + key + pad` 
 
+Our purpose is to leak the `key` value from ciphertest to decrypt the flag.
+
 ## Attacking ECB
 
 In ECB mode,  each block of plaintext is encrypted independently with the key as demonstrated by the diagram below.
@@ -86,4 +88,26 @@ As you can see, when we send 16 characters of A, the total block's length is 64,
 So the block size will be: 80-64 = 16 bytes.
 
 ### 2. Find the offset
-In real-world scenarios, we’ll most likely not have our chosen plaintext start as the first byte of a block, so we’ll need to calculate the offset. The offset can be found by prepending bytes in increasing length to `block size * 2` of a static value until two consecutive blocks of ciphertext are found.
+
+In this [article](https://zachgrace.com/posts/attacking-ecb/), the author did a very good job in explaining what is the offset and how do we find it. I copied a part from his blog to help you easier to understand, if you want to read more about this in detail, I suggest you go and read his blog.
+
+*In real-world scenarios, we’ll most likely not have our chosen plaintext start as the first byte of a block, so we’ll need to calculate the offset. The offset can be found by prepending bytes in increasing length to `block size * 2` of a static value until two consecutive blocks of ciphertext are found.*
+
+The code to find offset:
+```python
+
+def find_offset(p) -> int:
+    static = "A"*block_size*2
+    offset_char = "}"
+    for i in range(0, block_size):
+        data_send = offset_char * i + static
+        data_return = send_payload(p, data_send)
+        blocks = b64decode(data_return[0])
+        if blocks[block_size*2] == blocks[block_size*3]:
+            print("Found offset: ", i)
+            return i
+
+    print("Offset error")
+    exit(1)
+
+```
