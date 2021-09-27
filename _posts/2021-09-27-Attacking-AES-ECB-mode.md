@@ -10,7 +10,7 @@ tags: Crypto
 ---
 
 ## Introduction
-DownUnder CTF was an awesome event, I enjoyed it a lot. Unfortunately I'm not Australian so I cannot join a team to compete for prizes. I solved the web challenges ( easy-mode) quite fast, after that, I decided to try something new which I've never done before - Crypto challenge :(. @James Kettel once said that if you want to learn something new but you don't know which topic to choose to learn, pick the one that you scared the most, because that's your weakness. 
+DownUnder CTF was an awesome event, I enjoyed it a lot. Unfortunately I'm not Australian so I cannot join a team to compete for prizes. I solved the web challenges ( easy-mode) quite fast, after that, I decided to try something new which I've never done before - Crypto challenge :(. @James Kettel once said that if you want to learn something new but you don't know which topic to choose to learn, pick the one that you scared the most, because that's your weakness. I came across this awesome [article](https://zachgrace.com/posts/attacking-ecb/) explain how to attack AES ECB mode
 
 Break-me Challenge was a AES encryption challenge with ECB mode:
 
@@ -51,6 +51,8 @@ if __name__ == '__main__':
 
 ```
 
+So our ciphertext will have format: `Cipher text = flag + user_input + key + pad` 
+
 ## Attacking ECB
 
 In ECB mode,  each block of plaintext is encrypted independently with the key as demonstrated by the diagram below.
@@ -83,3 +85,5 @@ Cipher text from server:  ['8MAq3pGs7/KTcv0c3ijqTJhv/z9V8QA7l9TkMkU72YJxgLlJxgOG
 As you can see, when we send 16 characters of A, the total block's length is 64, when we send 17 characters, we get 80
 So the block size will be: 80-64 = 16 bytes.
 
+### 2. Find the offset
+In real-world scenarios, we’ll most likely not have our chosen plaintext start as the first byte of a block, so we’ll need to calculate the offset. The offset can be found by prepending bytes in increasing length to `block size * 2` of a static value until two consecutive blocks of ciphertext are found.
