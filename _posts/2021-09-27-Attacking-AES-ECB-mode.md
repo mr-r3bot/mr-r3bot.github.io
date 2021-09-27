@@ -93,7 +93,7 @@ In this [article](https://zachgrace.com/posts/attacking-ecb/), the author did a 
 
 *In real-world scenarios, we’ll most likely not have our chosen plaintext start as the first byte of a block, so we’ll need to calculate the offset. The offset can be found by prepending bytes in increasing length to `block size * 2` of a static value until two consecutive blocks of ciphertext are found.
 
-*By adding characters to the beginning of our control data, we will eventually get two consecutive blocks of repeating ciphertext. In this example, we’re adding B’s to the beginning of our control data until we get two blocks of A’s.*
+*By adding characters to the beginning of our control data, we will eventually get two consecutive blocks of repeating ciphertext.*
 
 The code to find offset:
 ```python
