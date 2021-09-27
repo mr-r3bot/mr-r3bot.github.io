@@ -91,7 +91,9 @@ So the block size will be: 80-64 = 16 bytes.
 
 In this [article](https://zachgrace.com/posts/attacking-ecb/), the author did a very good job in explaining what is the offset and how do we find it. I copied a part from his blog to help you easier to understand, if you want to read more about this in detail, I suggest you go and read his blog.
 
-*In real-world scenarios, we’ll most likely not have our chosen plaintext start as the first byte of a block, so we’ll need to calculate the offset. The offset can be found by prepending bytes in increasing length to `block size * 2` of a static value until two consecutive blocks of ciphertext are found.*
+*In real-world scenarios, we’ll most likely not have our chosen plaintext start as the first byte of a block, so we’ll need to calculate the offset. The offset can be found by prepending bytes in increasing length to `block size * 2` of a static value until two consecutive blocks of ciphertext are found.
+
+*By adding characters to the beginning of our control data, we will eventually get two consecutive blocks of repeating ciphertext. In this example, we’re adding B’s to the beginning of our control data until we get two blocks of A’s.*
 
 The code to find offset:
 ```python
@@ -109,5 +111,134 @@ def find_offset(p) -> int:
 
     print("Offset error")
     exit(1)
+
+```
+
+The result I got back from server is 0, so there is no offset
+
+### 3. Brute force character by character
+
+Once we have the offset, we can start to brute force the key value. We will do it by filling the inputs with `block_size - 1` character and get the ciphertext from the oracle. The last byte will be append from an unknown byte of ciphertext and we save that value as our `base_block` ( In this challenge, the unknown byte will be a part of `key` value because of how the ciphertext was formatted ). 
+
+Now, we can brute force the unknown byte by looping through all the printable characters and comparing with our `base_block` until we find a match.
+
+To find the next value of unknown ciphertext, we can use a static value of `block size - 2` so two bytes of the cipher text enter our controlled block. The payload will be `offset + static + key`
+
+It will be easier to understand it if you look at this [diagram](https://zachgrace.com/posts/attacking-ecb/)
+
+
+Code to brute force the key value:
+```python
+def brute_force_letter(p, key="") -> str:
+    offset = find_offset(p)
+    offset_str = "B" * offset
+    try:
+        for i in range(0, block_size):
+            static = "A"*(block_size - len(key) - 1)
+            base_block = send_payload(p, offset_str + static)
+            base_block = b64decode(base_block[0])
+            block_should_be = base_block[block_size*2: block_size*3]
+
+            for c in string.printable:
+                data_send = offset_str + static + key + c
+                data_return = send_payload(p, data_send)[0]
+                decoded_block = b64decode(data_return)
+                if block_should_be == decoded_block[block_size*2:block_size*3]:
+                    print ("Found a character: ", c)
+                    key += c
+                    print ("Current key value: ", key)
+                    break
+        return key
+        
+    except Exception:
+        p.close()
+        print ("Reconnecting ....")
+        new_process = remote("pwn-2021.duc.tf", 31914)
+        brute_force_letter(new_process, key)
+
+```
+
+We can recover the full key in plaintext by keep repeating the process.
+
+```bash
+Found a character:  0
+Current key value:  !_SECRETSOURCE_!
+Flag: DUCTF{ECB_M0DE_K3YP4D_D474_L34k}
+
+```
+
+### Full source code
+
+```python
+import string
+from Crypto.Cipher import AES
+from base64 import b64decode
+from pwn import *
+
+
+block_size = 16
+
+
+def send_payload(p, data: str) -> str:
+    p.sendlineafter("Enter plaintext:", data.encode())
+    p.recvline()
+    return_data = p.recvline()
+    return return_data.decode().split("\n")
+
+
+def find_offset(p) -> int:
+    static = "A"*block_size*2
+    offset_char = "}"
+    for i in range(0, block_size):
+        data_send = offset_char * i + static
+        data_return = send_payload(p, data_send)
+        blocks = b64decode(data_return[0])
+        if blocks[block_size*2] == blocks[block_size*3]:
+            print("Found offset: ", i)
+            return i
+
+    print("Offset error")
+    exit(1)
+
+
+def brute_force_letter(p, key="") -> str:
+    offset = find_offset(p)
+    offset_str = "B" * offset
+    try:
+        for i in range(0, block_size):
+            static = "A"*(block_size - len(key) - 1)
+            base_block = send_payload(p, offset_str + static)
+            base_block = b64decode(base_block[0])
+            block_should_be = base_block[block_size*2: block_size*3]
+
+            for c in string.printable:
+                data_send = offset_str + static + key + c
+                data_return = send_payload(p, data_send)[0]
+                decoded_block = b64decode(data_return)
+                if block_should_be == decoded_block[block_size*2:block_size*3]:
+                    print ("Found a character: ", c)
+                    key += c
+                    print ("Current key value: ", key)
+                    break
+        return key
+        
+    except Exception:
+        p.close()
+        print ("Reconnecting ....")
+        new_process = remote("pwn-2021.duc.tf", 31914)
+        brute_force_letter(new_process, key)
+
+def main(p):
+    key = brute_force_letter(p)
+    data = send_payload(p, "")
+    cipher = AES.new(key, AES.MODE_ECB)
+    pt = cipher.decrypt(data[0])
+    print(pt)
+    DUCTF{ECB_M0DE_K3YP4D_D474_L34k}
+
+
+if __name__ == "__main__":
+    p = remote("pwn-2021.duc.tf", 31914)
+    main(p)
 
 ```
