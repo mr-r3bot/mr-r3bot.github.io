@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "DownUnder CTF 2021 - Attacking AES ECB mode challenge"
+title:  "DownUnder CTF 2021 - Attacking AES ECB mode - Break Me challenge"
 date:   2021-09-27 16:00:00 +0700
 categories: research
 author: Quang Vo
@@ -8,3 +8,78 @@ toc: true
 description: Research crypto 
 tags: Crypto
 ---
+
+## Introduction
+DownUnder CTF was an awesome event, I enjoyed it a lot. Unfortunately I'm not Australian so I cannot join a team to compete for prizes. I solved the web challenges ( easy-mode) quite fast, after that, I decided to try something new which I've never done before - Crypto challenge :(. @James Kettel once said that if you want to learn something new but you don't know which topic to choose to learn, pick the one that you scared the most, because that's your weakness. 
+
+Break-me Challenge was a AES encryption challenge with ECB mode:
+
+The source code:
+
+```python
+#!/usr/bin/python3
+import sys
+import os
+from Crypto.Cipher import AES
+from base64 import b64encode
+
+bs = 16 # blocksize
+flag = open('flag.txt', 'rb').read().strip()
+key = open('key.txt', 'r').read().strip().encode() # my usual password
+
+def enc(pt):
+    cipher = AES.new(key, AES.MODE_ECB)
+    ct = cipher.encrypt(pad(pt+key))
+    res = b64encode(ct).decode('utf-8')
+    return res
+
+def pad(pt):
+    while len(pt) % bs:
+        pt += b'0'
+    return (pt)
+
+def main():
+    print('AES-128')
+    while(1):
+        msg = input('Enter plaintext:\n').strip()
+        pt = flag + str.encode(msg)
+        ct = enc(pt)
+        print(ct)
+
+if __name__ == '__main__':
+    main()
+
+```
+
+## Attacking ECB
+
+In ECB mode,  each block of plaintext is encrypted independently with the key as demonstrated by the diagram below.
+
+<img width="691" alt="image" src="https://user-images.githubusercontent.com/37280106/134861544-8428cd24-0b9f-48c8-be5e-1f5438e91c2b.png">
+
+Since each block will be **independently** encrypted with the key, so identical block will have identical cipher text. that's ECB's weakness. If we encrypt with data length > block size, there will be identical blocks of ciphertext.
+
+Basically, the strategy to attack ECB included 3 steps:
+- Identify the block size
+- Find the offset
+- Brute force character by character
+
+### 1. Identify the block size
+
+This is easy, the block size is 16 bytes as stated in the source code. In the real-world scenarios, if you don't have access to the source code, you can still identify the block size by sending specific characters to the **cryptographic oracle** ( the server that give us ciphertext) and watch the block's length change.
+
+```bash
+[+] Opening connection to pwn-2021.duc.tf on port 31914: Done
+Send:  AAAAAAAAAAAAAAAA
+Length:  64
+Cipher text from server:  ['8MAq3pGs7/KTcv0c3ijqTJhv/z9V8QA7l9TkMkU72YJxgLlJxgOGUNChbRePei65m8XWdhGwJb3Z/JWY2GlrlQ==', '']
+==============================
+Send:  AAAAAAAAAAAAAAAAA
+Length:  80
+Cipher text from server:  ['8MAq3pGs7/KTcv0c3ijqTJhv/z9V8QA7l9TkMkU72YJxgLlJxgOGUNChbRePei65Dcmd8bzNKRbuji9aZ1gFG8kjwLbp8PJU0prnC44o+1g=', '']
+[*] Closed connection to pwn-2021.duc.tf port 31914
+```
+
+As you can see, when we send 16 characters of A, the total block's length is 64, when we send 17 characters, we get 80
+So the block size will be: 80-64 = 16 bytes.
+
