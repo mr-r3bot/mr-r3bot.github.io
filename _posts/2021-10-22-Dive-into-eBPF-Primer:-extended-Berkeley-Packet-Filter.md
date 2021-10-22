@@ -73,7 +73,7 @@ Each function call can have at most 5 arguments in registers `r1-r5`; this appli
 <img width="767" alt="image" src="https://user-images.githubusercontent.com/37280106/138434196-d3def4e6-b02b-4af4-bc01-cdf4ff4ed537.png">
 
 
-User mode processes can interact with a eBPF program in the kernel using eBPF maps. They can also be used by multiple eBPF programs to interact with each other. They are a generic key/value store with an arbitrary data structure [6](https://prototype-kernel.readthedocs.io/en/latest/bpf/ebpf_maps.html). There are various types of maps including: arrays, queues, and stacks.
+User mode processes can interact with a eBPF program in the kernel using eBPF maps. They can also be used by multiple eBPF programs to interact with each other. They are a generic key/value store with an [arbitrary data structure](https://prototype-kernel.readthedocs.io/en/latest/bpf/ebpf_maps.html). There are various types of maps including: arrays, queues, and stacks.
 
 A map is described by five different attributes:
 -   `type` - the data structure of the map
