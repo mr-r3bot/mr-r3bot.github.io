@@ -9,6 +9,10 @@ description: Vulnerability Research
 tags: eBPF, research, linux, kernel
 ---
 
+# Introduction
+This is my first blog of the eBPF vulnerability research journey, the goal is to reproduce this amazing [exploit](https://www.graplsecurity.com/post/kernel-pwning-with-ebpf-a-love-story), 
+First, I will dive into what is eBPF and program some simple eBPF program. Most of the content here is copied from various sources, mostly from this amazing [write-up](https://www.graplsecurity.com/post/kernel-pwning-with-ebpf-a-love-story)
+
 
 Reference:
 - https://www.graplsecurity.com/post/kernel-pwning-with-ebpf-a-love-story
@@ -18,17 +22,6 @@ Reference:
 - https://prototype-kernel.readthedocs.io/en/latest/bpf/ebpf_maps.html
 - https://homepages.dcc.ufmg.br/~mmvieira/so/papers/Fast_Packet_Processing_with_eBPF_and_XDP.pdf
 
-
-## Content
-1. [[#1. What is eBPF ?|1. What is eBPF ?]]
-1. [[#2. eBPF Virtual Machine  & Byte-code|2. eBPF Virtual Machine  & Byte-code]]
-1. [[#3. The eBPF Maps|3. The eBPF Maps]]
-1. [[#4. The eBPF Verifier|4. The eBPF Verifier]]
-	1. [[#4.1 Range Tracking|4.1 Range Tracking]]
-	1. [[#4.2 ALU Sanitation|4.2 ALU Sanitation]]
-1. [[#5. eBPF programming|5. eBPF programming]]
-	1. [[#5.1. List of expected contexts of BPF program|5.1. List of expected contexts of BPF program]]
-	1. [[#5.2. ELF section scan when bpf_load is called|5.2. ELF section scan when bpf_load is called]]
 
 ### 1. What is eBPF ?
 eBPF provides a way for a user mode application to run code in kernel without needing to write a kernel module. The purported benefits of using eBPF versus a kernel module are ease of use, stability, and security. There are also performance improvements gained by doing certain tasks directly in the kernel compared to a pure user mode program. eBPF programs are used to do a myriad of things such as: tracing, instrumentation, hooking system calls, debugging, and of course, packet capturing/filtering.
@@ -44,7 +37,8 @@ Steps to run eBPF program:
 - The inserted code writes data to ringbuffers or generic key-value maps
 - Userspaces reads the result values from the shared map or ringbuffers
 
-![[Pasted image 20211016111110.png]]
+<img width="770" alt="image" src="https://user-images.githubusercontent.com/37280106/138434166-9702ffeb-e456-4dad-a202-ac6d3467f36c.png">
+
 
 ### 2. eBPF Virtual Machine  & Byte-code
 
@@ -76,7 +70,8 @@ Each function call can have at most 5 arguments in registers `r1-r5`; this appli
 
 ### 3. The eBPF Maps
 
-![[Pasted image 20211016201239.png]]
+<img width="767" alt="image" src="https://user-images.githubusercontent.com/37280106/138434196-d3def4e6-b02b-4af4-bc01-cdf4ff4ed537.png">
+
 
 User mode processes can interact with a eBPF program in the kernel using eBPF maps. They can also be used by multiple eBPF programs to interact with each other. They are a generic key/value store with an arbitrary data structure [6](https://prototype-kernel.readthedocs.io/en/latest/bpf/ebpf_maps.html). There are various types of maps including: arrays, queues, and stacks.
 
