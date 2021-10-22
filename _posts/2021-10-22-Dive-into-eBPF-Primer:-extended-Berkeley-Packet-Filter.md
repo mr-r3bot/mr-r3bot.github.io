@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Dive into eBPF - extended Berkeley Packet Filter"
+title:  "Dive into eBPF: extended Berkeley Packet Filter"
 date:   2021-10-22 16:00:00 +0700
 categories: research
 author: Quang Vo
@@ -138,15 +138,15 @@ Note that off_reg represents the scalar register being added to the pointer regi
 
 The above instructions do the following:
 
-1.  The value of alu_limit is loaded into BPF_REG_AX.
+1.  The value of `alu_limit` is loaded into `BPF_REG_AX`.
     
-2.  The value of off_reg at runtime is subtracted from alu_limit and stored into BPF_REG_AX. If off_reg > alu_limit, the highest bit of BPF_REG_AX is set (the sign bit).
+2.  The value of `off_reg` at runtime is subtracted from `alu_limit` and stored into `BPF_REG_AX`. If `off_reg > alu_limit`, the highest bit of `BPF_REG_AX` is set (the sign bit).
     
-3.  If the difference stored in BPF_REG_AUX is positive and off_reg is negative, indicating that alu_limit and the register’s value have opposing signs, the BPF_OR operation will set the sign bit.
+3.  If the difference stored in `BPF_REG_AUX` is positive and off_reg is negative, indicating that alu_limit and the register’s value have opposing signs, the BPF_OR operation will set the sign bit.
     
-4.  The BPF_NEG operation will negate the sign bit. If the sign bit is set, it will become 0, and if not, it will become 1.
+4.  The `BPF_NEG` operation will negate the sign bit. If the sign bit is set, it will become 0, and if not, it will become 1.
     
-5.  The BPF_ARSH operation does an arithmetic right shift of 63 bits. This fills BPF_REG_AX with either all 0s or 1s, the value of the sign bit.
+5.  The `BPF_ARSH` operation does an arithmetic right shift of 63 bits. This fills BPF_REG_AX with either all 0s or 1s, the value of the sign bit.
     
 6.  Depending on the result of the above operation, the BPF_AND operation will either null out off_reg or leave it unchanged.
     
