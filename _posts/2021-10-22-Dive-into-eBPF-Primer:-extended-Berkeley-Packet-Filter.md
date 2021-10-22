@@ -177,4 +177,5 @@ bool is_perf_event = strncmp(event, "perf_event", 10) == 0;
 
 bool is_cgroup_skb = strncmp(event, "cgroup/skb", 10) == 0;
 
-bool is_
+bool is_cgroup_sk = strncmp(event, "cgroup/sock", 11) == 0;
+```
