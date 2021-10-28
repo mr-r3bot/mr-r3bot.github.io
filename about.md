@@ -5,8 +5,7 @@ permalink: /about/
 ---
 
 Hi everyone,
-I'm Quang Vo, I'm currently working full-time as Security Engineer at Momo E-wallet , part-time bug bounty hunter. I mostly focus on Web Security and Vulnerabilty research.
-I love Reverse Engineering, Vulnerability Research, Web app security
+I'm Quang Vo, I'm currently working full-time as Security Engineer, part-time bug bounty hunter. I mostly focus on Web Security and Vulnerabilty research. 
 
 Where you can find me:
 - Github: [https://github.com/mr-r3bot](https://github.com/mr-r3bot) ( where I publish poc scripts )
