@@ -155,13 +155,12 @@ This means that if off_reg exceeds alu_limit, or if off_reg and alu_limit have o
 
 ### 5. eBPF programming
 
-#### 5.1. List of expected contexts of BPF program
+First, there are 2 things we need to know about eBPF program:
+- There are many different program types and each **program type** accept a different parameter input ( expected context ): [https://blogs.oracle.com/linux/post/bpf-a-tour-of-program-types](https://blogs.oracle.com/linux/post/bpf-a-tour-of-program-types) 
+- When program is loaded, it will scan for `ELF section` in the BPF program, here is the list of all the ELF sections: [https://github.com/pratyushanand/learn-bpf/blob/master/bpf_load.c](https://github.com/pratyushanand/learn-bpf/blob/master/bpf_load.c)
 
-List of expected context of each **eBPF program type**: https://blogs.oracle.com/linux/post/bpf-a-tour-of-program-types
 
-#### 5.2. ELF section scan when bpf_load is called
-- Code that compare ELF section when scanning: https://github.com/pratyushanand/learn-bpf/blob/master/bpf_load.c
-
+example code:
 ```c
 bool is_socket = strncmp(event, "socket", 6) == 0;
 
