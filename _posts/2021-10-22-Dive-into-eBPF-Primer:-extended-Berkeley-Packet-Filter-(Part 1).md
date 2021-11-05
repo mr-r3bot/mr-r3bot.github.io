@@ -153,28 +153,3 @@ The above instructions do the following:
 
 This means that if off_reg exceeds alu_limit, or if off_reg and alu_limit have opposing signs, the value of off_reg will be replaced with 0, nulling the pointer arithmetic operation.
 
-### 5. eBPF programming
-
-First, there are 2 things we need to know about eBPF program:
-- There are many different program types and each **program type** accept a different parameter input ( expected context ): [https://blogs.oracle.com/linux/post/bpf-a-tour-of-program-types](https://blogs.oracle.com/linux/post/bpf-a-tour-of-program-types) 
-- When program is loaded, it will scan for `ELF section` in the BPF program, here is the list of all the ELF sections: [https://github.com/pratyushanand/learn-bpf/blob/master/bpf_load.c](https://github.com/pratyushanand/learn-bpf/blob/master/bpf_load.c)
-
-
-example code:
-```c
-bool is_socket = strncmp(event, "socket", 6) == 0;
-
-bool is_kprobe = strncmp(event, "kprobe/", 7) == 0;
-
-bool is_kretprobe = strncmp(event, "kretprobe/", 10) == 0;
-
-bool is_tracepoint = strncmp(event, "tracepoint/", 11) == 0;
-
-bool is_xdp = strncmp(event, "xdp", 3) == 0;
-
-bool is_perf_event = strncmp(event, "perf_event", 10) == 0;
-
-bool is_cgroup_skb = strncmp(event, "cgroup/skb", 10) == 0;
-
-bool is_cgroup_sk = strncmp(event, "cgroup/sock", 11) == 0;
-```
