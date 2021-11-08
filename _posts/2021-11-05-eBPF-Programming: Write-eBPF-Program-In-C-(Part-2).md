@@ -11,7 +11,16 @@ tags: eBPF, research, linux, kernel
 
 ## Introduction
 
-### 1. Program context & section
+### 1. Choosing your level of eBPF abstraction
+- Raw eBPF instructions written by hand using a C macro DSL.
+- Direct use of LLVM/Clang to compile C into eBPF ELF files.
+- High-level APIs that compile and load strings of a custom DSL C
+  - `iovisor/bcc` ( Python )
+  - `iovisor/gobpf` ( Golang )  
+
+In this blog post, we will code eBPF program in C and use LLVM/Clang to compile C into ELF files.
+
+### 2. Program context & section
 
 First, there are 2 things we need to know about eBPF program:
 - There are many different program types and each **program type** accept a different parameter input ( expected context ): [https://blogs.oracle.com/linux/post/bpf-a-tour-of-program-types](https://blogs.oracle.com/linux/post/bpf-a-tour-of-program-types) 
