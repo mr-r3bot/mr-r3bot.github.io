@@ -21,3 +21,30 @@ In this blog, we are going to dive in some of the famous gadget chain to see wha
 IDE I use in this blog will be [IntelliJ IDEA Ultimate](https://www.jetbrains.com/idea/) so that we can debug line by line of codes, you can use the community version, it's fine.
 
 ## CommonsCollections5 gadget chain
+
+In ysoserial, there are 7 different gadget chains relate to `CommonsCollection` . In this blog post,, I'll use `commons-collection version 3.2.1` .
+
+Here is what the gadget chain look like from `ysoserial` : 
+
+```java
+BadAttributeValueExpException.readObject()
+  TiedMapEntry.toString()
+    TiedMapEntry.getValue()
+      LazyMap.get()
+        ChainedTransformer.transform()
+          ConstantTransformer.transform()
+          InvokerTransformer.transform()
+            Method.invoke()
+              Class.getMethod()
+          InvokerTransformer.transform()
+            Method.invoke()
+              Runtime.getRuntime()
+          InvokerTransformer.transform()
+            Method.invoke()
+```
+
+We will write some Java code to trigger the gadget chain and debug it:
+
+```java
+
+```
