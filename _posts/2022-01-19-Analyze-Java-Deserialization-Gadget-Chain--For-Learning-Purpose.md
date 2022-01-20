@@ -8,17 +8,19 @@ tags: java, deserialization
 description: Research
 ---
 
-## Introduction 
+# Introduction 
 Most of people have heard about Java deserialization apocalypse. There are great tools out there for hunting deserialization vulnerabilities out there, to name a fews:
 - The famous [ysoserial](https://github.com/frohoff/ysoserial)
 - The same [ysoserial](https://github.com/pwntester/ysoserial.net) but for C# .NET
 - [Gadgetinspector](https://github.com/JackOfMostTrades/gadgetinspector)
 
-While in those tools, payloads are already there for us to use. But I believe the best way to learn and remember what we learnt are by actually understanding it, that's why I write this blog, to help me remember and understand it more and also for who want to know about this.
+While in those tools, payloads are already there for us to use. But I believe the best way to learn and remember what we learnt are by actually understanding it, that's why I write this blog, to help me remember and understand it more and also for who want to know about this. t
 
 In this blog, we are going to dive in some of the famous gadget chain to see what's in there and how it's work.
 
 IDE I use in this blog will be [IntelliJ IDEA Ultimate](https://www.jetbrains.com/idea/) so that we can debug line by line of codes, you can use the community version, it's fine.
+
+I'm not an expert in Java or Java deserialization exploit, so if I made any mistakes in this blog post, please forgive me and let me know how can I fix it.
 
 ## CommonsCollections5 gadget chain
 
@@ -84,6 +86,40 @@ Why do I place breakpoint at `LazyMap.get()` method ?.
 
 That is because if we place breakpoint at `BadAttributeValueExpException.readObject()` or `TiedMapEntry.toString()` or `TiedMapEntry.getValue()` method.
 IntelliJ IDEA Debugger will execute the payload and pop calc before we go all the way down to the gadget chain, I guess during the Debugger session, IntelliJ IDEA has invoked methods beforehand to get us the local variables's value, so the payload has been executed.
+
+
+Let's go through what `LazyMap.get()` does:
+- First, it checks if `this.map` has a key or not
+- If not, it will call method `this.factory.transform()`
+
+![image](https://user-images.githubusercontent.com/37280106/150267702-fc9a2313-8360-4e8a-8720-cf7cebbec500.png)
+
+`this.factory` here is `ChainedTransfomer` so `this.factory.transform()` is `ChainedTransformer.transform` 
+
+Stepping into `this.factory.transform()`
+
+![image](https://user-images.githubusercontent.com/37280106/150269410-d58b0ebd-5adb-4ebb-ae39-5c34cb755382.png)
+
+`this.iTransformer[]` has 4 elements:
+- ConstantTransformer
+- InvokerTransformer
+- InvokerTransformer
+- InvokerTransformer
+
+#### At the first interval, `i=0` 
+
+`this.iTransformer[0] = ConstantTransformer` 
+
+So `this.iTransformer[0].transform() = ConstantTransformer.transform()`
+
+
+![image](https://user-images.githubusercontent.com/37280106/150269639-b80b205d-e819-402b-89a4-1b56d8c3222e.png)
+*ConstantTransformer.transform()*
+
+`ConstantTransformer.transform()` doesn't do anything much, just return `this.iConstant` 
+
+#### Second interval, `i=1`
+
 
 
 
