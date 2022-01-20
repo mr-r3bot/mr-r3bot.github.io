@@ -169,3 +169,31 @@ The final result of this loop is `object = getRuntime()`
 
 ### Third interval, `i=2`
 
+![image](https://user-images.githubusercontent.com/37280106/150292581-59436f73-e945-424b-8a88-29ccd2b77b69.png)
+
+Where:
+- `object: java.lang.Runtime` 
+- `this.iTransfomer[2].transform()` is `InvokerTransformer.transform(object)` 
+
+Stepping into `InvokerTransformer.transform(object` ( it will be like Step 2 )
+![image](https://user-images.githubusercontent.com/37280106/150295683-3073196e-6ef1-4ccf-bfac-b3c53c4c497e.png)
+
+Current local variables:
+- `input: Runtime.getRuntime()`
+- `cls: class java.lang.reflect.Method` ( this was because getRuntime() method was invoke by reflection Invoke before ) 
+
+```java
+Method method =   cls.getMethod(this.iMethodName, this.iParamTypes);  
+```
+ with:
+```
+ this.iMethodName = "invoke"
+ this.iParamTypes[] = {java.lang.Object, Object[]}
+```
+
+`return method.invoke(input, this.iArgs)` 
+
+will finally become:
+```
+java.lang.reflect.Method.invoke(Runtime.getRuntime(), ....)
+```
