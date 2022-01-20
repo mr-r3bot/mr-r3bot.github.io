@@ -189,11 +189,16 @@ Method method =   cls.getMethod(this.iMethodName, this.iParamTypes);
 ```
  this.iMethodName = "invoke"
  this.iParamTypes[] = {java.lang.Object, Object[]}
+ 
+ => java.lang.reflect.Method.invoke()
 ```
 
-`return method.invoke(input, this.iArgs)` 
+Finally
+```
+return method.invoke(input, this.iArgs)
+```
 
-will finally become:
+will become:
 ```
 java.lang.reflect.Method.invoke(Runtime.getRuntime(), ....)
 ```
