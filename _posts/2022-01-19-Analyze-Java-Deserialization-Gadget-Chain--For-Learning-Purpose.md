@@ -158,5 +158,14 @@ The final one: `method.invoke(input, this.iArgs)`
 This is belong to **Java Reflection API** collection, it allows us to invoke methods on a class, if that class **is not possible to cast an instance of the class to the desire type** ( read more [here](https://docs.oracle.com/javase/tutorial/reflect/member/methodInvocation.html))
 
 - `input = java.lang.Runtime`
-- `this.iArgs = new Object[2] {"getRuntime", new Class[0]}`
+- `this.iArgs = new Object[2] {"getRuntime", Class[0]}`
+
+Eventually, it will turns into:
+```java
+Runtime.class.getMethod("getRuntime", ...)
+```
+
+The final result of this loop is `object = getRuntime()` 
+
+#### Third interval, `i=2`
 
