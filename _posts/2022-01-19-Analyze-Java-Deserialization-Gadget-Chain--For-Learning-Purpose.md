@@ -202,3 +202,33 @@ will become:
 ```
 java.lang.reflect.Method.invoke(Runtime.getRuntime(), ....)
 ```
+
+### The final interval, `i=3`
+
+![image](https://user-images.githubusercontent.com/37280106/150307113-4046c7e4-00ef-45bc-8c49-703eeadcd6e6.png)
+
+Stepping into the `transform` method
+
+![image](https://user-images.githubusercontent.com/37280106/150307228-cac7913b-54bd-49cf-8048-461f3a205719.png)
+
+This time:
+- `input: Runtime object` ( input is an **Object**, not class like the previous loops ) 
+- `Class cls = input.getClass() => cls = class java.lang.Runtime`
+
+```
+method = Runtime.class.getMethod("exec", "gnome-calculator")
+```
+
+Finally
+
+```
+method.invoke() => our sink
+```
+
+Will execute our command, this is the last of our chain
+
+![image](https://user-images.githubusercontent.com/37280106/150308012-e453215a-167b-4f71-9fa4-42dee1aeb6a0.png)
+
+## Conclusion
+
+I'm writing this post without having much experience about Java or Java deserialization, but I think research & write down what you understand is a crucial part of being a security researcher, even if you may be wrong ;)
