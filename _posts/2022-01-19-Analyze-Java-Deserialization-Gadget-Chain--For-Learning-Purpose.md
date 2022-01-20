@@ -97,8 +97,9 @@ Let's go through what `LazyMap.get()` does:
 `this.factory` here is `ChainedTransfomer` so `this.factory.transform()` is `ChainedTransformer.transform` 
 
 Stepping into `this.factory.transform()`
+![image](https://user-images.githubusercontent.com/37280106/150271971-8917f61a-4674-4015-bfc3-6e033447f2cb.png)
 
-![image](https://user-images.githubusercontent.com/37280106/150269410-d58b0ebd-5adb-4ebb-ae39-5c34cb755382.png)
+
 
 `this.iTransformer[]` has 4 elements:
 - ConstantTransformer
@@ -120,7 +121,34 @@ So `this.iTransformer[0].transform() = ConstantTransformer.transform()`
 
 #### Second interval, `i=1`
 
+![image](https://user-images.githubusercontent.com/37280106/150272216-e36be323-b30c-4c2d-8fe1-52203a75154a.png)
 
+`this.iTransformer[1].transform(object)` where:
+- `this.iTransformer[1] = InvokerTransformer`
+- `Object = class java.lang.Runtime` 
 
+Stepping in `InvokerTransformer.transform(object)` 
 
+![image](https://user-images.githubusercontent.com/37280106/150272502-2170d79d-a22f-43d9-89a0-09e094a6a975.png)
 
+Current local variables:
+- `Object input = class java.lang.Runtime` 
+- `Class cls = Runtime.class.getClass()` => `cls = java.lang.Class` 
+- `this.iMethodName = getMethod` 
+- `this.iParamTypes has been set before: String.class, Class[].class`
+- `this.iArgs = new Object[2] {"getRuntime", Class[0]}` 
+- 
+And then it executes `method.invoke` 
+
+The input here is: `Runtime.class`, an **Object** of class `java.lang.Class`. Every class in Java is an object of class `java.lang.Class` 
+
+So `Class cls = Runtime.class.getClass() => cls = java.lang.Class` 
+
+The next line: `Method method = cls.getMethod(this.iMethodName, this.iParamTypes)` with:
+- `this.iMethodName = "getMethod"`
+
+It turns to:
+```java
+Method method = Class.getMethod("getMethod"); 
+```
+Which means, using `getMethod` to get the method name `getMethod` of class `Class` ( kinda confusing )
