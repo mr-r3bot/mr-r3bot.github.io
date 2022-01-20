@@ -20,7 +20,7 @@ In this blog, we are going to dive in some of the famous gadget chain to see wha
 
 IDE I use in this blog will be [IntelliJ IDEA Ultimate](https://www.jetbrains.com/idea/) so that we can debug line by line of codes, you can use the community version, it's fine.
 
-## CommonsCollections gadget chain
+## CommonsCollections5 gadget chain
 
 In ysoserial, there are 7 different gadget chains relate to `CommonsCollection` . In this blog post, I'll use `commons-collection version 3.2.1` .
 
@@ -43,7 +43,7 @@ BadAttributeValueExpException.readObject()
             Method.invoke()
 ```
 
-I write some Java code to invoke the gadget chain and start to debug it:
+I write some Java code to invoke the gadget chain and start to debug it ( you can see more details from [here](https://github.com/frohoff/ysoserial/blob/master/src/main/java/ysoserial/payloads/CommonsCollections5.java)):
 ```java
    public static void CommonsCollections5() throws IllegalAccessException, NoSuchFieldException {
 
