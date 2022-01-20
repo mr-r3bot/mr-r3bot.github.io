@@ -107,7 +107,7 @@ Stepping into `this.factory.transform()`
 - InvokerTransformer
 - InvokerTransformer
 
-#### At the first interval, `i=0` 
+### At the first interval, `i=0` 
 
 `this.iTransformer[0] = ConstantTransformer` 
 
@@ -119,7 +119,7 @@ So `this.iTransformer[0].transform() = ConstantTransformer.transform()`
 
 `ConstantTransformer.transform()` doesn't do anything much, just return `this.iConstant` 
 
-#### Second interval, `i=1`
+### Second interval, `i=1`
 
 ![image](https://user-images.githubusercontent.com/37280106/150272216-e36be323-b30c-4c2d-8fe1-52203a75154a.png)
 
@@ -167,5 +167,5 @@ Runtime.class.getMethod("getRuntime", ...)
 
 The final result of this loop is `object = getRuntime()` 
 
-#### Third interval, `i=2`
+### Third interval, `i=2`
 
