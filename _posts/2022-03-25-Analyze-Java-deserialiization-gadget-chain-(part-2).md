@@ -9,3 +9,15 @@ description: Research
 ---
 
 # Introduction 
+To continue part 1, we will analyze **CommonsCollections2** gadget chain. This gadget chain is interesting because it introduces some new concepts ( to me ) about trampolines and sink holes. 
+
+Gadget chain ( copied from ysoserial ):
+```text
+ObjectInputStream.readObject()
+			PriorityQueue.readObject()
+				...
+					TransformingComparator.compare()
+						InvokerTransformer.transform()
+							Method.invoke()
+								Runtime.exec()
+```
