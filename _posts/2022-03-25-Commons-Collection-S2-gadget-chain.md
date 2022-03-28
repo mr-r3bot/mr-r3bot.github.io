@@ -9,7 +9,7 @@ description: Research
 ---
 
 # Introduction 
-To continue part 1, we will analyze **CommonsCollections2** gadget chain. This gadget chain is interesting because it introduces some new concepts ( to me ) about trampolines and sink holes. 
+To continue part 1, we will analyze **CommonsCollections2** gadget chain next. This gadget chain is interesting because it introduces some new concepts ( to me ) about trampolines and sink holes. 
 
 Gadget chain ( copied from ysoserial ):
 ```text
@@ -21,3 +21,7 @@ ObjectInputStream.readObject()
 							Method.invoke()
 								Runtime.exec()
 ```
+
+Payload generator by ysoserial:
+
+![image](https://user-images.githubusercontent.com/37280106/160421862-65e45e16-c00d-43bc-873c-4aac28f525e1.png)
