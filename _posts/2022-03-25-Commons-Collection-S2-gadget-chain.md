@@ -26,6 +26,10 @@ Payload generator by ysoserial:
 
 ![image](https://user-images.githubusercontent.com/37280106/160421862-65e45e16-c00d-43bc-873c-4aac28f525e1.png)
 
+We will break the gadget into 2 parts :
+- The PriorityQueue gadget
+- The TemplatesImpl gadget
+
 ## The PriorityQueue gadget 
 
 The gadget chain start at `PriorityQueue.readObject()` 
