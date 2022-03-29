@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Analyze Java deserialization CommonsCollection gadget chain ( part 2 )"
+title:  "Analyze Java deserialization CommonsCollections2 gadget chain ( part 2 )"
 date:   2022-03-25 16:00:00 +0700
 categories: research
 author: Quang Vo
@@ -8,7 +8,7 @@ tags: java, deserialization
 description: Research
 ---
 
-# Introduction 
+# Introduction - CommonsCollections2 gadget chain analysis
 To continue part 1, we will analyze **CommonsCollections2** gadget chain next. This gadget chain is interesting because it introduces some new concepts ( to me ) about trampolines and sink holes. 
 
 Gadget chain ( copied from ysoserial ):
@@ -26,7 +26,7 @@ Payload generator by ysoserial:
 
 ![image](https://user-images.githubusercontent.com/37280106/160421862-65e45e16-c00d-43bc-873c-4aac28f525e1.png)
 
-## CommonCollections2 gadget chain analysis
+## The PriorityQueue gadget 
 
 The gadget chain start at `PriorityQueue.readObject()` 
 
@@ -49,4 +49,5 @@ final PriorityQueue<Object> queue = new PriorityQueue<Object>(2,new Transforming
 
 - `comparator.compare(obj1, obj2)` is equivalent to `TransformingComparator.compare(obj1,obj2)` 
 
+## The TemplatesImpl gadget 
 
