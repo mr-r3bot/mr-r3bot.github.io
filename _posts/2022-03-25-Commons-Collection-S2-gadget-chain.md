@@ -71,7 +71,11 @@ final InvokerTransformer transformer = new InvokerTransformer("toString", new Cl
 final PriorityQueue<Object> queue = new PriorityQueue<Object>(2,new TransformingComparator(transformer));
 ```
 
+- `this.transformer.transform` will turn into `InvokerTransformer.transform(obj)` 
 
+![image](https://user-images.githubusercontent.com/37280106/160632394-7834d331-8cd7-434b-b256-3a175c899709.png)
+
+If you read the part 1, you will see the similarity, the function that we want to pay close attention to is: `method.invoke(input, this.iArgs)`. It belongs to the **Java Reflection API**, it allows us to **invoke methods on a class**.
 
 
 ## The TemplatesImpl gadget 
