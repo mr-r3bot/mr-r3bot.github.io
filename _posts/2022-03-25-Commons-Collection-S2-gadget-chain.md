@@ -32,6 +32,8 @@ We will break the gadget into 2 parts :
 
 ## The PriorityQueue gadget 
 
+`java.util.PriorityQueue` is a built-in Java class that implements a priority queue that can be ordered by a custom comparator. It implements `Serializable` interface and have a custom deserialization function `readObject()`, this is very crucial to our gadget chain. 
+
 The gadget chain start at `PriorityQueue.readObject()` 
 
 Implementation of `PriorityQueue.readObject()` :
@@ -52,6 +54,25 @@ final PriorityQueue<Object> queue = new PriorityQueue<Object>(2,new Transforming
 ```
 
 - `comparator.compare(obj1, obj2)` is equivalent to `TransformingComparator.compare(obj1,obj2)` 
+
+Let's place a breakpoint at `TransformingComparator.compare(obj1, obj2 )`  so we can examine the value of each variables to have a better understanding how the gadget chain actually run.
+
+![image](https://user-images.githubusercontent.com/37280106/160627891-71a67437-cc62-41f1-b7d0-f7ccf1ba18d1.png)
+
+As you can see in the picture:
+- `obj1: 1` and `obj: 2` ( this is because we call `queue.add(1)` twice in the code ).
+- `this.transformer` is `InvokerTransformer` 
+
+This is because `TransformerComparator` needs a `Transformer` class, and we "give" it `InvokerTransformer` in the beginning of our gadget chain
+
+```java
+final InvokerTransformer transformer = new InvokerTransformer("toString", new Class[0], new Object[0]);
+
+final PriorityQueue<Object> queue = new PriorityQueue<Object>(2,new TransformingComparator(transformer));
+```
+
+
+
 
 ## The TemplatesImpl gadget 
 
