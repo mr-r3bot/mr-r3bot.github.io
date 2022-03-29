@@ -26,6 +26,27 @@ Payload generator by ysoserial:
 
 ![image](https://user-images.githubusercontent.com/37280106/160421862-65e45e16-c00d-43bc-873c-4aac28f525e1.png)
 
-## Gadget chain analysis
+## CommonCollections2 gadget chain analysis
+
+The gadget chain start at `PriorityQueue.readObject()` 
+
+Implementation of `PriorityQueue.readObject()` :
+
+![image](https://user-images.githubusercontent.com/37280106/160623598-36e8480a-e567-43da-a76e-962ac0a5ee25.png)
+
+For every `Object` in the `PriorityQueue`, it will call method `readObject()` and then call to `this.heapify()`
+
+In `this.heapify()` function, we have a trampolines:
+```
+heapify() -> siftDown() -> siftDownComparator() -> comparator.compare(obj1, obj2) 
+```
+
+The final function called in the `heapify()` trampolines is `comparator.compare(obj1,obj2)` . Looking back at the gadget chain code, we can easily identify the value of our comparator 
+
+```java
+final PriorityQueue<Object> queue = new PriorityQueue<Object>(2,new TransformingComparator(transformer));
+```
+
+- `comparator.compare(obj1, obj2)` is equivalent to `TransformingComparator.compare(obj1,obj2)` 
 
 
