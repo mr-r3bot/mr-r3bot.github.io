@@ -123,3 +123,30 @@ After provided bytecodes in TemplateImpl to achieve RCE, we add TemplateImpl to 
 
 ![image](https://user-images.githubusercontent.com/37280106/160749386-85b01425-6fa2-485a-861e-927c5d2066a5.png)
 
+## Deserialization process
+
+During the deserialization process, the function `TransformerComparator.compare(obj1, obj2 )` is called again
+
+![image](https://user-images.githubusercontent.com/37280106/160749625-b6f4f0bc-3aaa-4472-8633-a176bb70fb51.png)
+
+With values:
+- `obj1` is `TemplatesImpl` ( because we switch the content of queue )
+- `obj2` is still `1`
+- `this.transformer` is `InvokerTransformer`
+
+=> `this.transformer.transform(obj1)` will become `InvokerTransformer.transform(TemplatesImpl)`. Which will lead us to this function
+
+![image](https://user-images.githubusercontent.com/37280106/160749943-67b6ee9b-259f-43ea-b590-70ed25b9bdc9.png)
+
+With values:
+- input: `TemplatesImpl` 
+- cls: `com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl`
+- method: `cls.getMethod(this.iMethodName, this.iParamsType)` will be equivalent to `TemplatesImpl.getMethod("newTransformer", Class[0]` => `newTransformer` 
+
+And finally the function: `method.invoke(input, this.iArgs)` will invoke `newTransformer()` method of `TemplatesImpl` and trigger our chain, build class from bytecodes
+
+Result:
+
+![image](https://user-images.githubusercontent.com/37280106/160750317-7133eb8a-6100-4285-a8a4-95d2e69d0978.png)
+
+
