@@ -77,6 +77,26 @@ final PriorityQueue<Object> queue = new PriorityQueue<Object>(2,new Transforming
 
 If you read the part 1, you will see the similarity, the function that we want to pay close attention to is: `method.invoke(input, this.iArgs)`. It belongs to the **Java Reflection API**, it allows us to **invoke methods on a class**.
 
+So now we know that, at the end of this `PriorityQueue` gadget chain, we are able to **invoke any methods on any class** , our path to Remote Code Execution is getting closer.
+
+The next line in gadget chain code:
+```
+// switch method called by comparator
+Reflections.setFieldValue(transformer, "iMethodName", "newTransformer");
+```
+
+Again, **Java Reflection API** is used here, to set the value of `iMethodName` in `InvokerTransformer` to `newTransformer`, previously the `iMethodName` was `toString` 
+
+Before the `Reflections.setFieldValue` call:
+
+![image](https://user-images.githubusercontent.com/37280106/160745138-9efbc4c1-7fc7-425f-94b8-8a4628056f0f.png)
+
+After the `setFieldValue` is called:
+
+![image](https://user-images.githubusercontent.com/37280106/160745179-9ab52963-75e0-4691-a9cb-92bed761d7f5.png)
+
+Why do we need to set `iMethodName` to `newTransformer` ?. This method is very crucial for our next gadget chain, it helps us to be able to achieve RCE. We will move to **the TemplatesImpl** gadget to see how is this function is used to achieve RCE.
+
 
 ## The TemplatesImpl gadget 
 
