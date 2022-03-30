@@ -100,3 +100,21 @@ Why do we need to set `iMethodName` to `newTransformer` ?. This method is very c
 
 ## The TemplatesImpl gadget 
 
+`org.apache.xalan.xsltc.trax.TemplatesImpl` ( TemplatesImpl ) is normally used for XML parsing. What is interesting about this class, is that it holds an array of objects
+in bytecode in the variable _bytecodes. A call to defineTransletClasses() will read this bytecode and initialize the
+classes. Note that whereas serialized objects can only contain values, bytecode is much more powerful as it can include
+code.
+
+Here our gadget will be:
+```
+getOutputProperties() -> newTransformer() -> getTransletInstance() -> defineTransletClasses()
+```
+
+![image](https://user-images.githubusercontent.com/37280106/160748874-06a69bac-a81b-4c4e-b685-0b87f71f7118.png)
+
+*newTransformer call getTransletInstance*
+
+Implementation of *getTransletInstance*
+![image](https://user-images.githubusercontent.com/37280106/160748992-429fa922-1ef7-45a8-9d5f-cc6970728638.png)
+
+Finally, it will load classes defined in `__bytecodes` 
