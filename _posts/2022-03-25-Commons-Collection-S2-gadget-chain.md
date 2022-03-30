@@ -118,3 +118,8 @@ Implementation of *getTransletInstance*
 ![image](https://user-images.githubusercontent.com/37280106/160748992-429fa922-1ef7-45a8-9d5f-cc6970728638.png)
 
 Finally, it will load classes defined in `__bytecodes` 
+
+After provided bytecodes in TemplateImpl to achieve RCE, we add TemplateImpl to our PrioriyQueue and have it serialized.
+
+![image](https://user-images.githubusercontent.com/37280106/160749386-85b01425-6fa2-485a-861e-927c5d2066a5.png)
+
