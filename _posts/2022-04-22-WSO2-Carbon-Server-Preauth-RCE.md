@@ -80,7 +80,7 @@ To gather all the jar files and decompile them at once, I used this simple comma
 find . -type f -name "*.jar" | xargs -n 1 -P 20 -I {} mv {} wso2-decompiled/
 ```
 
-This will gather all the jar files, and then move it to folder `wso2-decompiled` , then after that, we can throw them all in IntelliJ and let it decompile for us.
+This will gather all the jar files, and then move it to folder `wso2-decompiled` , then after that, we can throw them all in **IntelliJ** and let it decompile for us.
 
 Content of module: `org.wso2.carbon.ui.transport.fileupload`
 
