@@ -86,6 +86,16 @@ Content of module: `org.wso2.carbon.ui.transport.fileupload`
 
 ![image](https://user-images.githubusercontent.com/37280106/164597868-2806cd5f-bd56-4fc6-a2c9-86bf3a614d1f.png)
 
+The `FileUploadServlet` with `init()` function 
+
+![image](https://user-images.githubusercontent.com/37280106/165049405-421d5254-fc52-43ec-bbe6-b24b1e930e4a.png)
+
+In `init()` function, `FileUploadExecutorManager` was initialized, this class is in charge of handling different types of file uploading
+
+Later, in `/fileupload` route, it handles 2 http methods: GET & POST
+
+![image](https://user-images.githubusercontent.com/37280106/165049949-341d892f-b8c8-405e-9c0a-a35d739ee726.png)
+
 
 
 ## Proof-of-concept
