@@ -96,6 +96,15 @@ Later, in `/fileupload` route, it handles 2 http methods: GET & POST
 
 ![image](https://user-images.githubusercontent.com/37280106/165049949-341d892f-b8c8-405e-9c0a-a35d739ee726.png)
 
+When a POST request is sent, `this.fileUploadExecuteManager.execute()` will be executed, content of `execute()` method:
+
+![image](https://user-images.githubusercontent.com/37280106/165246271-8394c4a3-fb42-4be6-883b-5327b254dd87.png)
+
+Let's walkthrough what `execute()` method do:
+- Get requestURI, splits the requestURI after `fileupload/`, so any strings come after `fileupload/` is considered `actionString` 
+- `actionString` is passed to `CarbonXmlFileUploadExecHandler` class along with `request` and `response`.
+- After `CarbonXmlFileUploadExecHandler` was initilized, it is added to `execHandlerManager` by `execHandlerManager.addExecHandler(carbonXmlExecHandler);`
+- And then `execHandlerManager.startExec()` is called 
 
 
 ## Proof-of-concept
