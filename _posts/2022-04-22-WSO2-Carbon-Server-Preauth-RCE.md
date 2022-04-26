@@ -73,7 +73,7 @@ Looking through all the results that came back, one of the xml file that stand o
     </FileUploadConfig>
 ```
 
-### 2. Decompile codebase and debug
+### 2. Decompile codebase and review code
 
 To gather all the jar files and decompile them at once, I used this simple command:
 ```bash
