@@ -138,6 +138,13 @@ The second calls to `this.execute(request,response)` is where we need to focus t
 
 And then it appened the `fileName` of our uploaded file to `serviceUploadDir` => **This is where our Path Traversal bug lies, the web server takes untrusted user input without any sanitization**, this allowed us to escape the `/tmp` folder and write to any where that we want, hence we have `Unauth Arbitrary Write File on webserver` 
 
+ex:
+```bash
+serviceDir = '/tmp/extra/${time_mili}
+fileName = '../../../<any_folder>
+
+=> uploadedFile = /tmp/extra/${time_mili}/../../../<any_folder>
+```
 
 ## Proof-of-concept
 
