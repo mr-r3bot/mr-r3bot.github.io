@@ -157,7 +157,9 @@ Now that we have Unauth Arbitrary write file, the next question popped up in our
 
 We know that our web application serves JSP files at `./repository/deployment/servers/...`  , so that means we can write a JSP webshell to `webapps/` folder to achieve RCE 
 
+
 **Where to write ?** 
+
 Now we need to find a folder to write to, that any user can access without any authentication needed to achieve maximum severity.
 
 This is easy, the common thinking process will be go in the codebase and find any folder that serves JSP files like `login.jsp`, `index.jsp` because those are the landing pages of a web application, here I choose `user-portal` folder
