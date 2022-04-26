@@ -116,5 +116,28 @@ Let's walkthrough what `execute()` method do:
 toolsAny -> ToolAnyFileUploadExecutor
 ```
 
+If a corresponding mapping of action class is found for the `actionString` input, `foundExecutor` variable will be set to `true` and we will get to `obj.executeGeneric()` method.
+
+![image](https://user-images.githubusercontent.com/37280106/165249575-354e340a-dfc3-443e-95b2-4305dfdb47c8.png)
+
+
+In `executeGeneric()` method, the first call to `this.parseRequest(request)` will ensures that the request's content-type is multipart form and check if the file size exceeded maximum size allowed. 
+
+The second calls to `this.execute(request,response)` is where we need to focus to, because it will leads us to the action handling class `ToolsAnyFileUploadExecutor.execute()` 
+
+*content of ToolsAnyFileUploadExecutor.execute()*
+
+![image](https://user-images.githubusercontent.com/37280106/165250456-98fe64ef-2ed7-4126-a5e9-7ecc307456cb.png)
+
+`ToolsAnyFileUploadExecutor.execute()` method writes the uploaded file to `/tmp` folder in the webserver path and stores that path to `serviceUploadDir` variable 
+
+```java
+ File uploadedFile = new File(dir, fileItem.getFileItem().getFieldName());
+ FileOutputStream fileOutStream = new FileOutputStream(uploadedFile);
+```
+
+And then it appened the `fileName` of our uploaded file to `serviceUploadDir` => **This is where our Path Traversal bug lies, the web server takes untrusted user input without any sanitization**, this allowed us to escape the `/tmp` folder and write to any where that we want, hence we have `Unauth Arbitrary Write File on webserver` 
+
+
 ## Proof-of-concept
 
