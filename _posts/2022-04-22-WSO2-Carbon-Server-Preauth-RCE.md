@@ -106,6 +106,15 @@ Let's walkthrough what `execute()` method do:
 - After `CarbonXmlFileUploadExecHandler` was initilized, it is added to `execHandlerManager` by `execHandlerManager.addExecHandler(carbonXmlExecHandler);`
 - And then `execHandlerManager.startExec()` is called 
 
+`startExec()`  calls `execute()` of the objects was added to `execHandlerManager`, which is `CarbonXmlFileUploadExecHandler` 
+
+![image](https://user-images.githubusercontent.com/37280106/165247678-e39a1a1e-b5fe-4311-a677-362a54203cd2.png)
+
+`execute()` will loop through the `Hashmap` of `{"actionString": "classHandle"}` to find the corresponsding class of each `actionString`, in here, we want to invoke `toolsAny` 's handling class, so our mapping will be:
+
+```
+toolsAny -> ToolAnyFileUploadExecutor
+```
 
 ## Proof-of-concept
 
