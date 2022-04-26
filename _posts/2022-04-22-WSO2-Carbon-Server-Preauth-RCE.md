@@ -110,7 +110,7 @@ Let's walkthrough what `execute()` method do:
 
 ![image](https://user-images.githubusercontent.com/37280106/165247678-e39a1a1e-b5fe-4311-a677-362a54203cd2.png)
 
-`execute()` will loop through the `Hashmap` of `{"actionString": "classHandle"}` to find the corresponsding class of each `actionString`, in here, we want to invoke `toolsAny` 's handling class, so our mapping will be:
+`execute()` will loop through the `Hashmap` of `{"actionString": "classHandle"}` to find the corresponsding class of each `actionString`, in here, we want to invoke `toolsAny` 's handling class because **that's where our bug is ( I was manually try each actionString and review code of each action handling class  to find the bug )** , so our mapping will be:
 
 ```
 toolsAny -> ToolAnyFileUploadExecutor
