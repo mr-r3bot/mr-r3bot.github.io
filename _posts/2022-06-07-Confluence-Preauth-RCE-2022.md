@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Confluence Preauth RCE 0day: A look into bypass isSafeExpression check ( CVE-2022-26134 ) "
-date:   2022-05-18 16:00:00 +0700
+date:   2022-06-07 16:00:00 +0700
 categories: research
 author: Quang Vo
 tags: 0day, cve-2022-26134
