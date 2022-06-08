@@ -106,8 +106,10 @@ Content of `this.containsUnsafeExpression`
 
 At a high-level overview of this function, it checks for "unsafe" expression by:
 - Have a allowed whitelist of classNames, methodNames, variableNames and properties
-- Utilies AST parsing to check for unsafe node types where the unsafe node types are:
+- Utilies AST parsing to check for unsafe node types
+- In the for loop, it extracting the `childNode` one by one and then call the `containsUnsafeExpression` to perform the check again
 
+`UNSAFE_NODE_TYPES` is a `HashSet` includes:
 ![image](https://user-images.githubusercontent.com/37280106/172555031-7416d072-ac8e-4132-81e7-1ae3ff028e8b.png)
 
 Going back to the beginning of our blog, I mentioned the payload 
