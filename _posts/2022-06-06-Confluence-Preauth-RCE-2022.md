@@ -8,7 +8,7 @@ tags: 0day, cve-2022-26134
 description: Research analysis and develop a working exploit poc script 
 ---
 
-## Introduction & Environment setup
+## 1. Introduction & Environment setup
 
 CVE-2022-26134 is an Preauth RCE ( OGNL injection vulnerability ) in Confluence Server. As there are a lot of technical analysis and payload about the vulnerability already, while the payload works on most of confluence server versions, but it won't work in Confluence server version 7.18.0 because the dev team has added some additional check for safe expression. So in this post, I will focus on the bypass `isSafeExpression` of Confluence version 7.18.0.
 
@@ -28,7 +28,7 @@ services:
                         - 5432:5432
 ```
 
-## Technical Analysis
+## 2. Technical Analysis of how the isSafeExpression works
 
 Rapid7 Team did a great job on publishing the [blog post](https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/) and the exploit payload, here's the payload that I copied from their blog
 
@@ -161,7 +161,7 @@ String nodeClassName = node.getClass().getName();
 => nodeClassName will be ognl.ASTConst
 ```
 
-Follow the code flow, in line 117, we will move to this `else if block`;
+Follow the code flow of function `containsUnsafeExpression`, in line 117, we will move to this `else if block`;
 ```java
 else if ("ognl.ASTConst".equals(nodeClassName) && !this.isSafeConstantExpressionNode(node, visitedExpressions)) {
        return true;
@@ -189,3 +189,19 @@ private boolean isSafeConstantExpressionNode(Node node, Set<String> visitedExpre
 In `this.isSafeConstantExpressionNode` , it will call `this.isSafeExpressionInternal(value, visitedExpression)` where:
 - `value: java.lang.Runtime`
 - `visitedExpression<Hashset>: {"java.lang.Runtime", "Class"}` 
+
+Finally, we are reaching the important piece of code, where our payload fails:
+
+![image](https://user-images.githubusercontent.com/37280106/172668596-47cae55b-cd35-49cb-b193-03a274367aef.png)
+
+It will call to `isUnsafeClass` method to check if the expression is in the blacklisted property names or not.
+```
+if (this.unsafePropertyNames.contains(trimmedClassName)) {
+            return true;
+....
+```
+
+You can look back where I mentioned what `this.unsafePropertyNames` included, and our `java.lang.Runtime` is in the blacklisted, so the `this.isUnsafeClass` return true => Our expression is not evaluated
+
+
+## 3. Bypassing isSafeExpression check
