@@ -36,5 +36,21 @@ Rapid7 Team did a great job on publishing the [blog post](https://www.rapid7.com
 ${(#a=@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec("whoami").getInputStream(),"utf-8")).(@com.opensymphony.webwork.ServletActionContext@getResponse().setHeader("X-Cmd-Response",#a))}
 ```
 
-But when I try that payload on Confluence version 7.18.0, it didn't work. So I add remote debugger to add breakpoints to see why it doesn't work. 
+But when I try that payload on Confluence version 7.18.0, it didn't work. So I add remote debugger to add breakpoints to see what is the difference between their version and mine.
+
+
+Based on security advisories from Confluence, I download the `xwork-1.0.3-atlassian-10.jar` from their website and start to diffing patches, it's easy to identify  `ActionChainResult.class`  is where our vulnerability lies at.
+
+![image](https://user-images.githubusercontent.com/37280106/172528678-4bed14c4-bc8d-4809-99ae-1c49d86fa9c2.png)
+
+How an attacker provided URI can cause the vulnerability is well-explained and mentioned in this [blog post](https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/) ( you can go to their blog if you curious about the call stack to reach to our vulnerable code ), I just want to quickly note that because of this piece of code:
+
+```java
+public static String getNamespaceFromServletPath(String servletPath) {
+    servletPath = servletPath.substring(0, servletPath.lastIndexOf("/"));
+    return servletPath;
+}
+```
+
+Every payload that you send must end with `/` , otherwise it won't reach the vulnerable code path. I learned that from my own experience after trying to figure it out why the breakpoint won't hit when I send the payload 
 
