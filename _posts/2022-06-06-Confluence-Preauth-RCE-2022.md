@@ -96,3 +96,6 @@ Where `this.unsafePropertyNames` is a `HashSet` includes:
 ![image](https://user-images.githubusercontent.com/37280106/172532694-065d5872-2a97-46fc-b260-ef3be1f2bb19.png)
 
 Here we have a blacklist of forbidden property names, luckily our `trimmedClassName` variable is a long expression string **still** and not contains in the hashset so we can pass this check.
+
+Follow our code flow, we hit another check `this.containsUnsafeExpression(parsedExpression, visitedExpression)`
+![image](https://user-images.githubusercontent.com/37280106/172533345-09b239d4-90b3-4261-9495-317a5235613b.png)
