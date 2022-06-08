@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Confluence Preauth RCE 0day: A look into bypass isSafeExpression check ( CVE-2022-26134 ) "
+title:  "CVE-2022-26134: A look into bypass isSafeExpression check in Confluence Preauth RCE"
 date:   2022-06-06 16:00:00 +0700
 categories: research
 author: Quang Vo
@@ -104,3 +104,6 @@ Content of `this.containsUnsafeExpression`
 
 ![image](https://user-images.githubusercontent.com/37280106/172533604-fd1fc44d-143d-4444-8100-353e85540adb.png)
 
+At a high-level overview of this function, it checks for "unsafe" expression by:
+- Have a allowed whitelist of classNames, methodNames, variableNames and properties
+- Utilies AST parsing to check for unsafe node types
