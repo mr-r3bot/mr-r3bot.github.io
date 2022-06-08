@@ -63,3 +63,8 @@ TextParseUtil.translateVariables(this.namespace, stack);
 Content of `OgnlValueStack.findValue`
 ![image](https://user-images.githubusercontent.com/37280106/172530117-33346b6c-7804-483a-ae1f-1dfdcc2eaee6.png)
 
+Here we see that there is an additional check `this.safeExpressionUtil.isSafeExpression(expr)` ,  which will eventually leads to `SafeExpressionUtil.isSafeExpressionInternal`
+
+Content of `SafeExpressionUtil.isSafeExpressionInternal` , let's put a breakpoint at this function and send our payload to see what will happen
+![image](https://user-images.githubusercontent.com/37280106/172530562-d25f5861-49b6-4de8-b4e7-35719025496f.png)
+
