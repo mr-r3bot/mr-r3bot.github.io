@@ -95,3 +95,4 @@ Here we will go through the first check, `isUnsafeClass(expr)`
 Where `this.unsafePropertyNames` is a `HashSet` includes:
 ![image](https://user-images.githubusercontent.com/37280106/172532152-eba50895-fa4e-428c-b34c-6fc5e6a1f697.png)
 
+Here we have a blacklist of forbidden property names, luckily our `trimmedClassName` variable is a long expression string **still** and not contains in the hashset so we can pass this check.
