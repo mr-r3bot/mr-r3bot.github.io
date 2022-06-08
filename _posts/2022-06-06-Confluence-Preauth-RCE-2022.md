@@ -110,6 +110,7 @@ At a high-level overview of this function, it checks for "unsafe" expression by:
 - In the for loop, it extracting the `childNode` one by one and then call the `containsUnsafeExpression` to perform the check again
 
 `UNSAFE_NODE_TYPES` is a `HashSet` includes:
+
 ![image](https://user-images.githubusercontent.com/37280106/172555031-7416d072-ac8e-4132-81e7-1ae3ff028e8b.png)
 
 Going back to the beginning of our blog, I mentioned the payload 
