@@ -54,3 +54,12 @@ public static String getNamespaceFromServletPath(String servletPath) {
 
 Every payload that you send must end with `/` , otherwise it won't reach the vulnerable code path. I learned that from my own experience after trying to figure it out why the breakpoint won't hit when I send the payload 
 
+Our call stack to vulnerable code so far:
+```
+TextParseUtil.translateVariables(this.namespace, stack);
+        OgnlValueStack.findValue
+```
+
+Content of `OgnlValueStack.findValue`
+![image](https://user-images.githubusercontent.com/37280106/172530117-33346b6c-7804-483a-ae1f-1dfdcc2eaee6.png)
+
