@@ -9,8 +9,9 @@ description: Research analysis and develop a working exploit poc script
 ---
 
 ## Reference
-- https://pulsesecurity.co.nz/articles/EL-Injection-WAF-Bypass
-- https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/
+- [https://pulsesecurity.co.nz/articles/EL-Injection-WAF-Bypass](https://pulsesecurity.co.nz/articles/EL-Injection-WAF-Bypass)
+- [https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/](https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/)
+- [@MCKSysAr](https://twitter.com/MCKSysAr)
 
 ## 1. Introduction & Environment setup
 
