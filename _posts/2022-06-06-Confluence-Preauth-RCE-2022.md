@@ -264,3 +264,20 @@ We know that:
  
  output: class java.lang.Runtime
 ```
+
+Now we have to find out does `Ognl.parseExpression()` or `Ognl.getValue()` perform string concatnation or not 
+
+![image](https://user-images.githubusercontent.com/37280106/173008154-e621ac91-8759-4e21-9f75-374fb6cebf3b.png)
+
+`Ognl.parseExpression()` return Object, no string concatnation is performed during the function call. How about `Ognl.getValue()` ? 
+
+![image](https://user-images.githubusercontent.com/37280106/173008452-d600b8ee-574c-421b-83be-464e045529bb.png)
+
+```
+java.lang.IllegalAccessException: Method [public java.lang.Process java.lang.Runtime.exec(java.lang.String) throws java.io.IOException] cannot be called from within OGNL invokeMethod() under stricter invocation mode
+```
+Even though we got errors, but the most important thing is, `Ognl.getValue()` did concat our string and then invoke it.
+
+It's time to try on Confluence server 7.18.0 :)
+
+
