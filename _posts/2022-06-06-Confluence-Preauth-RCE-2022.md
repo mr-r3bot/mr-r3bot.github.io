@@ -195,7 +195,7 @@ Finally, we are reaching the important piece of code, where our payload fails:
 ![image](https://user-images.githubusercontent.com/37280106/172668596-47cae55b-cd35-49cb-b193-03a274367aef.png)
 
 It will call to `isUnsafeClass` method to check if the expression is in the blacklisted property names or not.
-```
+```java
 if (this.unsafePropertyNames.contains(trimmedClassName)) {
             return true;
 ....
@@ -205,3 +205,22 @@ You can look back where I mentioned what `this.unsafePropertyNames` included, an
 
 
 ## 3. Bypassing isSafeExpression check
+
+Let's recap what `isSafeExpression` really does:
+- Check for `unSafeClass` by a `<Hashset>this.unsafePropertyNames` 
+- Parse OGNL Expression into nodes and then perform check depends on the AST type
+```java
+String nodeClassName = node.getClass().getName();
+        if (UNSAFE_NODE_TYPES.contains(nodeClassName)) {
+            return true;
+        } else if ("ognl.ASTStaticMethod".equals(nodeClassName) && !this.allowedClassNames.contains(getClassNameFromStaticMethod(node))) {
+            return true;
+        } else if ("ognl.ASTProperty".equals(nodeClassName) && this.isUnSafeClass(node.toString())) {
+            return true;
+        } else if ("ognl.ASTMethod".equals(nodeClassName) && this.unsafeMethodNames.contains(getMethodInOgnlExp(node))) {
+            return true;
+        } else if ("ognl.ASTVarRef".equals(nodeClassName) && UNSAFE_VARIABLE_NAMES.contains(node.toString())) {
+            return true;
+        } else if ("ognl.ASTConst".equals(nodeClassName) && !this.isSafeConstantExpressionNode(node, visitedExpressions)) {
+            return true;
+```
