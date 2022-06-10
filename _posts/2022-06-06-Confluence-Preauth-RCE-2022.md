@@ -256,3 +256,10 @@ i = 2
 node = java.lang.Runtime => this is where we failed when this function is called this.isUnSafeClass(node.toString())
 ```
 
+Knowing that our string will be broken down into smaller and smaller string like demonstrated above, what if we break our payload to smaller pieces too ?
+
+```java
+ System.out.println(Class.forName("java." + "lang.Runtime"));
+ 
+ output: class java.lang.Runtime
+```
