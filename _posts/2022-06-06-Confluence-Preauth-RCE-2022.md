@@ -264,6 +264,7 @@ We know that:
  
  output: class java.lang.Runtime
 ```
+The idea is, we will use this string `"java." + "lang.Runtime"` to trick the parser to parse it into 2 different nodes: `java.` and `lang.Runtime`, so when the `this.unsafePropertyNames.contains(nodeClassName)` is called, we will be able to bypass it as those node's names are not in the Hashset
 
 Now we have to find out does `Ognl.parseExpression()` or `Ognl.getValue()` perform string concatnation or not 
 
@@ -280,4 +281,13 @@ Even though we got errors, but the most important thing is, `Ognl.getValue()` di
 
 It's time to try on Confluence server 7.18.0 :)
 
+First loop, `i=0`
+![image](https://user-images.githubusercontent.com/37280106/173010790-4721db5a-8309-4793-8706-f97fdb40fd56.png)
 
+`i=1`
+![image](https://user-images.githubusercontent.com/37280106/173010950-9682d2be-44ca-4eb3-9c6e-dc336e2e2e87.png)
+
+
+As you can see, we've successfully bypassed the `this.unsafePropertyNames()` check :)
+
+![image](https://user-images.githubusercontent.com/37280106/173011921-5bf140f7-57bb-4e85-9f02-53018dc9a2fb.png)
