@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Analyze Java deserialization gadget chain ( part 1 ) - For learning purpose"
+title:  "Analyze Java deserialization: CommonsCollections5 gadget chain ( part 1 )"
 date:   2022-01-19 16:00:00 +0700
 categories: research
 author: Quang Vo
