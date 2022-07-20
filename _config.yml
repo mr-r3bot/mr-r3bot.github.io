@@ -29,6 +29,7 @@ theme: jekyll-theme-cayman
 plugins:
   - jekyll-feed
   - jekyll-toc
+  - jekyll-paginate
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
