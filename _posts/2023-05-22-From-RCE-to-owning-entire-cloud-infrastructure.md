@@ -22,7 +22,7 @@ To sum up, this is how it went:
 More details below.
 
 
-### 1. Finding the RCE bug in Java application
+## 1. Finding the RCE bug in Java application
 
 While pentesting the main application, I found an API endpoint
 
@@ -60,11 +60,11 @@ Server response:
 {'responseTime': 1679566832492, 'message': 'Bad format request.', 'resultCode': "x", 'subErrors': [{'field': 'signature', 'message': 'Invalid signature. Check raw signature before signed. Raw data before hash: accessKey=*****&amount=2000&data=xxx&redirectUrl=https://c61sta92vtc0000v26yggdyh7feyyyyyb.interactsh.com&orderId=random-idf&orderInfo=start Process[pid=4024, exitValue="not exited"]'}]}
 ```
 
-You can see the ` Process[pid=4024, exitValue="not exited"] ` , which indicates that the I have successfully create another Process and executes the command
+You can see the `Process[pid=4024, exitValue="not exited"]` , which indicates that the I have successfully create another Process and executes the command
 
-#### 2. Enumerate network and pivot to Gitlab instance
+## 2. Enumerate network and pivot to Gitlab instance
 
-##### 2.1 Enumerate network
+### 2.1 Enumerate network
 After doing some basic enumeration of the client's environment that I just landed on, I found out that I'm in a very re-stricted environment ( within kubernetes ). With very limited access.
 
 Network interface access:
@@ -79,7 +79,7 @@ Explore listening ports in back-end system:
 
 From here, I know that I can access to `172.16.x.x` subnet. By performing network scanning and vhost brute forcing, I found an interesting subdomain `https://gitlab.company-domain.com.vn` 
 
-##### 2.2 Exploiting gitlab instance
+### 2.2 Exploiting gitlab instance
 
 Knowing that gitlab instance have many CVEs before, but since as an attacker, I don't have gitlab account to access, so I need to find an unauthenticated code execution bug, I tried to use CVE-2021-22205 to exploit ( exploit script: 
 https://github.com/mr-r3bot/Gitlab-CVE-2021-22205)
@@ -96,7 +96,7 @@ Because of the nature of CI/CD pipeline, Gitlab will requires devops engineer to
 
 With that knowledge, I'm aiming to gain access in Gitlab worker instances
 
-### 3. Abuse Gitlab CI/CD pipeline to gain access to Gitlab worker 
+## 3. Abuse Gitlab CI/CD pipeline to gain access to Gitlab worker 
 
 Gaining access to Gitlab database by rails console:
 ```bash
@@ -219,7 +219,7 @@ gcloud container images list --repository=redacted
 
 And just like that, I was able to have total control of client's cloud infrastructure
 
-### 4. Escaping to worker nodes and finding the RCE's root cause
+## 4. Escaping to worker nodes and finding the RCE's root cause
 
 After gaining access to Kubeconfig file, it's pretty easy to escape to worker node. All we need to do is to create a priviledged pod and from there we can escape to worker node, there are many different methods to escape from container when we are in priviledged one. I used the [mount c-group method](https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/)
 
