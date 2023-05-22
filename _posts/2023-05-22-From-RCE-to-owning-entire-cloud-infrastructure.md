@@ -166,6 +166,8 @@ By extracting env variables in this pod, I was able to gain access to everything
 - Kubeconfig file
 - Docker auth file
 - gcloud spinaker service account
+
+
 ```
 GCR_PUSH_KEY={
       "type": "service_account",
@@ -179,7 +181,6 @@ GCR_PUSH_KEY={
       "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
       "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/spinnaker-gcs-account%40redacted.iam.gserviceaccount.com"
 }
-
 ```
 
 ```yaml
