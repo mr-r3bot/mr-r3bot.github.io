@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "From RCE to have total control of cloud infrastructure "
+title:  "Red team: Journey from RCE to have total control of cloud infrastructure "
 date:   2023-05-22 9:00:00 +0700
 categories: red team
 author: Quang Vo
