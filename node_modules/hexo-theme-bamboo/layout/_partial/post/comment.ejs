@@ -1,0 +1,23 @@
+<!-- 评论 -->
+<% if(page.comments !== false ) { %>
+  <div id="myComment">
+    <% const commentPlugins = {
+      "utterance": "_partial/comment/utterance/layout",
+      "beaudar": "_partial/comment/beaudar/layout",
+      "twikoo": "_partial/comment/twikoo/layout",
+      "valine": "_partial/comment/valine/layout",
+      "gitalk": "_partial/comment/gitalk/layout",
+      "giscus": "_partial/comment/giscus/layout",
+      "waline": "_partial/comment/waline/layout",
+      "livere": "_partial/comment/livere/layout",
+      "gitment": "_partial/comment/gitment/layout",
+      "changyan": "_partial/comment/changyan/layout",
+    };
+    const activePlugin = Object.keys(commentPlugins).find(plugin => theme[plugin].on);
+    if (activePlugin) { %>
+      <%- partial(commentPlugins[activePlugin]) %>
+    <% } %>
+  </div>
+<% } %>
+
+<!-- 还需要在后面这个地址里设置script, comment script in themes\hexo-theme-bamboo\layout\_partial\scripts\index.ejs -->

@@ -1,0 +1,23 @@
+<% if (theme.preloader.on) { %>
+  <% const loaderMap = {
+      '1': 'preLoader/loader_1',
+      '2': 'preLoader/loader_2',
+      '3': 'preLoader/loader_3',
+      '4': 'preLoader/loader_4',
+      '5': 'preLoader/loader_5',
+      '6': 'preLoader/loader_6',
+      '7': 'preLoader/loader_7',
+      '8': 'preLoader/loader_8',
+    };
+
+    const loaderPartial = loaderMap[theme.preloader.type] || 'preLoader/loader_1';
+  %>
+  <%- partial(loaderPartial) %>
+  <script>
+    var endLoading = function () {
+      document.body.style.overflow = 'auto';
+      document.getElementById('loader').classList.add("loaded");
+    }
+    window.addEventListener('DOMContentLoaded', endLoading);
+  </script>
+<% } %>

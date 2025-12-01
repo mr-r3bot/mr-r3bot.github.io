@@ -1,0 +1,28 @@
+<!-- prismjs 代码高亮 -->
+<% if(config.prismjs.enable === true ) { %>
+    <% 
+        var themeName = post.prismjs || theme.prismjs.theme;
+        var themes = {
+            'default': 'prism.min.css',
+            'coy': 'prism-coy.min.css',
+            'dark': 'prism-dark.min.css',
+            'funky': 'prism-funky.min.css',
+            'okaidia': 'prism-okaidia.min.css',
+            'solarizedlight': 'prism-solarizedlight.min.css',
+            'tomorrow': 'prism-tomorrow.min.css',
+            'twilight': 'prism-twilight.min.css'
+        };
+        var themePath = themes[themeName] || 'prism.min.css';
+    %>
+    <link href="<%- url_for('/js/prism/prism-line-numbers.css') %>" rel="stylesheet">
+    <link href="<%- url_for('/js/prism/' + themePath) %>" rel="stylesheet">
+
+    <style>
+        pre[class*="language-"] {
+            overflow-y: hidden;
+        }
+        .line-numbers .line-numbers-rows {
+            border: none;
+        }
+    </style>
+<% } %>
