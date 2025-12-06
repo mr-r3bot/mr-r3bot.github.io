@@ -409,7 +409,7 @@ danmu:
 archive:
   title: 'archive'
   img: 'https://pic1.zhimg.com/80/v2-1414b3a4b205e19060db18a20d08723a_1440w.jpg?source=1940ef5c'
-  desc: '愿你如风，被人温柔以待'
+  desc: 'Archive posts'
   full: true # 设置为true，则图片全屏显示
   video: '' # 如果有值，则在屏幕大于920px的时候，全屏显示视频，为空则显示图片(img)
   background: '' # red or rgba(255,255,255,0.8) or other color or url("http:xxx.png")
@@ -421,7 +421,7 @@ archive:
 tag:
   title: 'tags'
   img: 'https://pic2.zhimg.com/80/v2-bf6c555e7c61a57ba4a1fd95a9a32975_1440w.jpg' # 标签页上面的图片
-  desc: '愿你如风，被人温柔以待'
+  desc: 'Available tags in the blog'
   full: false # 标签页上面的图片是否全屏显示
   video: '' # 如果有值，则在屏幕大于920px的时候，全屏显示视频
   background: '' # red or rgba(255,255,255,0.8) or other color or url("http:xxx.png")
@@ -431,7 +431,7 @@ tag:
 tagDetail:
   title: 'tag'
   img: 'https://pic1.zhimg.com/80/v2-604a15cef201cf177943af2d915eb2e7_1440w.jpg?source=1940ef5c'
-  desc: '愿你如风，被人温柔以待' # 标签页详情上上面的图片上的文字
+  desc: '' # 标签页详情上上面的图片上的文字
   full: false
   video: ''
   background: '' # red or rgba(255,255,255,0.8) or other color or url("http:xxx.png")
@@ -440,7 +440,7 @@ tagDetail:
 categories:
   title: 'categories'
   img: 'https://pic2.zhimg.com/80/v2-7c496c95897fb15768593cc5170c8b1a_1440w.jpg?source=1940ef5c'
-  desc: '愿你如风，被人温柔以待'
+  desc: 'Avaialble categories in this blog'
   full: false
   video: ''
   background: '' # red or rgba(255,255,255,0.8) or other color or url("http:xxx.png")
@@ -450,7 +450,7 @@ categories:
 categoryDetail:
   title: 'category'
   img: 'https://pic3.zhimg.com/80/v2-98dcd81cb0d1fee52a807c13cedb8338_1440w.jpg?source=1940ef5c'
-  desc: '愿你如风，被人温柔以待'
+  desc: ' '
   full: false
   video: ''
   background: '' # red or rgba(255,255,255,0.8) or other color or url("http:xxx.png")

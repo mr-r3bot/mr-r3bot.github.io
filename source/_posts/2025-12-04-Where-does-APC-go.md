@@ -1,7 +1,8 @@
 ---
 title: Where does my APC function go ?
 date: 2025-12-04 20:00:46
-tags: Windows
+categories: Windows
+tags: Windows-Internal, Malware-Development
 ---
 
 # Introduction 

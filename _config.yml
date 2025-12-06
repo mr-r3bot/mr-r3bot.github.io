@@ -12,7 +12,7 @@ timezone: ''
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://mr-r3bot.github.io
+url: https://mr-r3bot.github.io
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -67,6 +67,19 @@ index_generator:
 default_category: uncategorized
 category_map:
 tag_map:
+
+# Tag Generator
+tag_generator:
+  per_page: 10
+  order_by: -date
+  
+auto_category:
+  enable: true
+  depth:
+# Category Generator
+category_generator:
+  per_page: 10
+  order_by: -date
 
 # Metadata elements
 ## https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta
