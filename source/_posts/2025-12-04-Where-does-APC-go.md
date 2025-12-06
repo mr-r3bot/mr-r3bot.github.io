@@ -3,6 +3,7 @@ title: Where does my APC function go ?
 date: 2025-12-04 20:00:46
 categories: Windows
 tags: Windows-Internal, Malware-Development
+img: /images/apc-3.jpg
 ---
 
 # Introduction 
