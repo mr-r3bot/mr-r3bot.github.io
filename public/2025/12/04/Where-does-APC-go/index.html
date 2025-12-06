@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>About me | Quang Vo</title>
+  <title>Where does my APC function go ? | Quang Vo</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -462,17 +462,27 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/v2-a5267dfbf175991d4b3a69b41f3f678a_b.jpg')">
+  background-position: center center;position: relative;background-image:url('https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        About me
+        Where does my APC function go ?
       </span>
     </div>
     
+    
+      
+        <span class="post-detail-header_date">
+          <i class="fas fa-calendar"></i> Published in：2025-12-04 |
+        </span>
+      
+
+      
+
+      
     
   </div>
   
@@ -488,9 +498,130 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        
+        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>Early-bird injection used to be every malware author’s favorite technique to bypass Windows defender ( a long time ago tho xd ). It’s probably one of the first thing I learn when it comes to shellcode injection in malware development.</p>
+<p>One of the key part of Early-bird injection technique is the usage of <code>QueueUserApc</code> function in Windows. But I never go deeper to understand how APC works internally at kernel level and what’s behind the theory</p>
+<p>So in this blog post, we going to the journey of where does the thread go when we queueing it to the APC. I hope it’s fun for all of my readers and somewhat informative to you guys.</p>
+<h1 id="APC-Asynchronous-Procedure-Calls"><a href="#APC-Asynchronous-Procedure-Calls" class="headerlink" title="APC - Asynchronous Procedure Calls"></a>APC - Asynchronous Procedure Calls</h1><p>I will not go into the definition of what is a APC call and how to use this function, that will be left for readers to go to Microsoft documentation to figure it out. I will go deep into the implementation of <code>QueueUserApc</code> and what happens when we use the function</p>
+<p><em>QueueUserApc function</em> </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">DWORD WINAPI <span class="title">QueueUserApc</span><span class="params">(IN PAPCFUNC pfnApc, IN HANDLE hThread, IN ULONG_PTR dwData)</span> </span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>pfnApc</code> : the APC function we want to execute</li>
+<li><code>hThread</code> : the thread we want to queue our APC</li>
+<li><code>dwData</code> : params for APC function</li>
+</ul>
+<p>When we call this Usermode Apc function -  <code>QueueUserApc</code> ( ring 3 ), it will transition to <code>NtQueueApcThread</code>  kernel mode apc ( ring 0 )</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS NTAPI <span class="title">NtQueueApcThread</span><span class="params">(IN HANLDE ThreadHandle, IN PKNORMAL_ROUTINE ApcRoutine, IN PVOID NormalContext, , IN PVOID SystemArgument1, IN PVOID SystemArgument2 )</span></span></span><br></pre></td></tr></table></figure>
+
+<p>Where:</p>
+<ul>
+<li><code>ThreadHandle</code> will be our <code>hThread</code> from <code>QueueUserApc</code></li>
+<li><code>NormalContext</code> will be our APC function ( <code>pfnApc</code> )</li>
+<li><code>dwData</code> will be <code>SystemArgument1</code></li>
+</ul>
+<p>The full implementation of <code>NtQueueApcThread</code> code can be found <a target="_blank" rel="noopener" href="https://github.com/ayyucedemirbas/Windows-Research-Kernel-WRK-/blob/26b524b2d0f18de703018e16ec5377889afcf4ab/WRK-v1.2/base/ntos/ps/psctx.c#L61">here</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    PETHREAD Thread;</span><br><span class="line">    NTSTATUS st;</span><br><span class="line">    KPROCESSOR_MODE Mode;</span><br><span class="line">    PKAPC Apc;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">PAGED_CODE</span>();</span><br><span class="line"></span><br><span class="line">    Mode = <span class="built_in">KeGetPreviousMode</span> ();</span><br><span class="line"></span><br><span class="line">    st = <span class="built_in">ObReferenceObjectByHandle</span> (ThreadHandle,</span><br><span class="line">                                    THREAD_SET_CONTEXT,</span><br><span class="line">                                    PsThreadType,</span><br><span class="line">                                    Mode,</span><br><span class="line">                                    &amp;Thread,</span><br><span class="line">                                    <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">NT_SUCCESS</span> (st)) &#123;</span><br><span class="line">        st = STATUS_SUCCESS;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">IS_SYSTEM_THREAD</span> (Thread)) &#123;</span><br><span class="line">            st = STATUS_INVALID_HANDLE;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Apc = <span class="built_in">ExAllocatePoolWithQuotaTag</span> (NonPagedPool | POOL_QUOTA_FAIL_INSTEAD_OF_RAISE,</span><br><span class="line">                                              <span class="built_in">sizeof</span>(*Apc),</span><br><span class="line">                                              <span class="string">&#x27;pasP&#x27;</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (Apc == <span class="literal">NULL</span>) &#123;</span><br><span class="line">                st = STATUS_NO_MEMORY;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="built_in">KeInitializeApc</span> (Apc,</span><br><span class="line">                                 &amp;Thread-&gt;Tcb,</span><br><span class="line">                                 OriginalApcEnvironment,</span><br><span class="line">                                 PspQueueApcSpecialApc,</span><br><span class="line">                                 <span class="literal">NULL</span>,</span><br><span class="line">                                 (PKNORMAL_ROUTINE)ApcRoutine,</span><br><span class="line">                                 UserMode,</span><br><span class="line">                                 ApcArgument1);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (!<span class="built_in">KeInsertQueueApc</span> (Apc, ApcArgument2, ApcArgument3, <span class="number">0</span>)) &#123;</span><br><span class="line">                    <span class="built_in">ExFreePool</span> (Apc);</span><br><span class="line">                    st = STATUS_UNSUCCESSFUL;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">ObDereferenceObject</span> (Thread);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> st;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>With this, it will lead us to the core logic functions of APC workflow and its transitioning to Kernel mode:</p>
+<ul>
+<li><code>KeInitializeApc</code></li>
+<li><code>KeInsertQueueApc</code></li>
+<li><code>KeDeliverApc</code> ( later )</li>
+</ul>
+<p>But first, we have to setup proper debugging VM in order to debug kernel.</p>
+<h2 id="Setup-Kernel-debugger"><a href="#Setup-Kernel-debugger" class="headerlink" title="Setup Kernel debugger"></a>Setup Kernel debugger</h2><p>To sum up what you want to do to setup properly:</p>
+<ul>
+<li>Setup 2 VMs ( debugee and debugger )</li>
+<li>Enable Kernel debugging on Debugee VM</li>
+<li>Configure it to accept remote kernel debugging ( via Network is the best, lower latency ).</li>
+<li>From your debugger VM, use Windbg to connect to Debugee VM</li>
+</ul>
+<p>Full guide can be found <a target="_blank" rel="noopener" href="https://idafchev.github.io/research/2023/06/28/Windows_Kernel_Debugging.html">here</a></p>
+<h2 id="Dynamic-Debugging-Kernel"><a href="#Dynamic-Debugging-Kernel" class="headerlink" title="Dynamic Debugging Kernel"></a>Dynamic Debugging Kernel</h2><p>We will code a simple program to use <code>QueueUserApc</code>, then start debugging it.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;stdio.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">DWORD <span class="title">NewThread</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;[+] Hello from new thread \n&quot;</span>);</span><br><span class="line">		<span class="comment">// alertable state</span></span><br><span class="line">		<span class="built_in">SleepEx</span>(<span class="number">2000</span>, TRUE);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">ApcRoutine</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;[+] inside ApcRoutine \n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	HANDLE thread;</span><br><span class="line">	DWORD tid = <span class="number">0</span>;</span><br><span class="line">	thread = <span class="built_in">CreateThread</span>(<span class="literal">NULL</span>, <span class="literal">NULL</span>, (LPTHREAD_START_ROUTINE)NewThread, <span class="literal">NULL</span>, <span class="number">0</span>, &amp;tid);</span><br><span class="line">	<span class="keyword">if</span> (thread) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;[+] Thread handle: 0x%p, tid: %d \n&quot;</span>, thread, tid);</span><br><span class="line">		<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">		<span class="built_in">QueueUserAPC</span>((PAPCFUNC)ApcRoutine, thread, <span class="number">0</span>);</span><br><span class="line">		<span class="built_in">WaitForSingleObject</span>(thread, INFINITE);</span><br><span class="line">		<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Compile then move the program to the Debuggee VM, then run it.</p>
+<p><img src="/images/apc-1.jpg" class="lazyload placeholder" data-srcset="/images/apc-1.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="Running result"></p>
+<p>Once we press “enter” , <code>QueueApc</code> routine function will be executed </p>
+<p><img src="/images/apc-2.png" class="lazyload placeholder" data-srcset="/images/apc-2.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="APC Running"></p>
+<h2 id="Placing-the-breakpoint"><a href="#Placing-the-breakpoint" class="headerlink" title="Placing the breakpoint"></a>Placing the breakpoint</h2><p>Now we have a program that queueing APC function, it’s time to place breakpoint and see what’s happening under the hood</p>
+<p>In my setup, i placed breakpoint at <code>NtQueueApcThreadEx2</code> ( I still don’t know why my breakpoint at <code>NtQueueApcThread</code> didn’t hit xD, so if you know, please let me know xD )</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; bp nt!NtQueueApcThreadEx2</span><br></pre></td></tr></table></figure>
+<p>After placing the breakpoint, hit “Enter” again to let the program jumps to <code>ApcRoutine</code> function. </p>
+<p>When the breakpoint hit, we need to verify if it was us triggering it, you can do this by typing <code>!thread</code> in Windbg to see of <code>Image</code> name match our program’s name.</p>
+<p><img src="/images/apc-3.png" class="lazyload placeholder" data-srcset="/images/apc-3.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="NtQueueApcThread breakpoint"></p>
+<p>My program’s name is: <code>ApcResearch.exe</code> which match in <code>!thread Image</code> </p>
+<p>Now, there are a lot going on in <code>nt!NtQueueApcThread</code> , we don’t have to go through every line of assembly, we want to get to the function call that transition us to Kernel mode <code>ntkrnlmp!KeInitializeApc (fffff80542d41e70)</code> </p>
+<p>Keep hitting “p” or step over until you get here.</p>
+<p><img src="/images/apc-4.png" class="lazyload placeholder" data-srcset="/images/apc-4.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="KeInitializeApc"></p>
+<h3 id="KeInitializeApc"><a href="#KeInitializeApc" class="headerlink" title="KeInitializeApc"></a>KeInitializeApc</h3><p>Knowing function signature is important to understand the logic of it and its flow, I take the <code>KeInitializeApc</code> function’s logic and params from <a target="_blank" rel="noopener" href="https://github.com/ayyucedemirbas/Windows-Research-Kernel-WRK-">here</a> ( which is a good resource to look into Windows kernel code logic )</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTKERNELAPI</span></span><br><span class="line"><span class="function">VOID</span></span><br><span class="line"><span class="function"><span class="title">KeInitializeApc</span> <span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    __out PRKAPC Apc,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in PRKTHREAD Thread,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in KAPC_ENVIRONMENT Environment,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in PKKERNEL_ROUTINE KernelRoutine,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt PKRUNDOWN_ROUTINE RundownRoutine,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt PKNORMAL_ROUTINE NormalRoutine,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt KPROCESSOR_MODE ProcessorMode,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt PVOID NormalContext</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Apc-&gt;Thread = Thread;</span><br><span class="line">    Apc-&gt;KernelRoutine = KernelRoutine;</span><br><span class="line">    Apc-&gt;RundownRoutine = RundownRoutine;</span><br><span class="line">    Apc-&gt;NormalRoutine = NormalRoutine;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">ARGUMENT_PRESENT</span>(NormalRoutine)) &#123;</span><br><span class="line">        Apc-&gt;ApcMode = ApcMode;</span><br><span class="line">        Apc-&gt;NormalContext = NormalContext;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Apc-&gt;ApcMode = KernelMode;</span><br><span class="line">        Apc-&gt;NormalContext = NIL;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Apc-&gt;Inserted = FALSE;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">    &#125;;</span><br></pre></td></tr></table></figure>
+
+<p>In this function, we pay attention to the first 2 params: Apc and Thread , which will be the <strong>Apc func</strong> and <strong>our Thread</strong>, we can extract these values out of registers in Windbg ( in x64 calling conventions, <strong>first 4 params will always be in these registers  RCX, RDX, R8 and R9</strong> ) </p>
+<p>In Windbg:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">r @rcx</span><br><span class="line">r @rdx</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/apc-5.png" class="lazyload placeholder" data-srcset="/images/apc-5.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="APC params"></p>
+<p>So here we will have <code>Apc=ffffcf0a02f18f80</code> and <code>Thread=ffffcf0a0282a080</code> , we will examine the <strong>Thread</strong> first by typing: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dt _KTHREAD ffffcf0a0282a080</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/apc-6.png" class="lazyload placeholder" data-srcset="/images/apc-6.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_KTHREAD"></p>
+<p>the <code>_KTHREAD</code> structure is quite huge, I will focus on 4 fields that I think it useful for this blog post ( <strong>Alertable, ApcQueueable, Running, Process</strong> ), but feel free to examine it and explore it yourself. </p>
+<p>I will briefly explain those fields and its meaning:</p>
+<ul>
+<li><code>Running: 0</code> ⇒ not yet running</li>
+<li><code>Alertable: 0x1</code> ⇒ Thread is in <strong>alertable</strong> state, which is a crucial part for APC execution</li>
+<li><code>ApcQueueable: 0x1</code> ⇒ can be APC queued</li>
+</ul>
+<p>We can verify again that it’s coming from our process:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!process 0xffffcf0a`0174608</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/apc-7.png" class="lazyload placeholder" data-srcset="/images/apc-7.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_EPROCESS"></p>
+<p>That’s for the <code>_KTHREAD</code> structure, now let’s look at <code>_KAPC</code> structure</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dt _KAPC ffffcf0a02f18f80</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/apc-8.png" class="lazyload placeholder" data-srcset="/images/apc-8.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_KAPC"></p>
+<p>The fields we going to pay attention to are:</p>
+<ul>
+<li>Type</li>
+<li>Thread: </li>
+<li>ApcMode</li>
+<li>SystemArgument1 and SystemArgument2</li>
+<li>Inserted</li>
+</ul>
+<p>Now, press “p” or step over in Windbg to move past the call to <code>nt!KeInitializeApc</code> , display type <code>_KAPC</code> again and observe how the type values has changed: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dt _KAPC ffffcf0a02f18f80</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/apc-9.png" class="lazyload placeholder" data-srcset="/images/apc-9.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_KAPC changed"></p>
+<p>Noticeable changes:</p>
+<ul>
+<li><code>Type</code>: 0x12</li>
+<li><code>Thread</code>: now the thread value is our <code>_KTHREAD</code> from above ( <code>ffffcf0a0282a080</code> ). This would be the thread where APC going to queue</li>
+<li><code>ApcMode</code>: 1 ⇒ User mode</li>
+<li><code>SystemArgument1/2</code>: We didnot pass any arguments so it’s null</li>
+<li><code>Inserted</code>: 0 ⇒ this is the field indicate if the Apc is added to the list yet, that would lead to another function we need to explore: <code>KeInsertQueueApc</code></li>
+</ul>
+<hr>
+<p><strong>To wrap up till now, we have:</strong> </p>
+<ul>
+<li>The journey of <code>QueueUserApc</code> from user-mode to kernel-mode</li>
+<li>Kernel debugging setup</li>
+<li><code>KeInitializeApc</code> function</li>
+<li>Examination of <code>_KTHREAD</code> and <code>_KAPC</code> structures</li>
+</ul>
+<p>I will save <code>KeInsertQueueApc</code> for part 2, we will see how <code>Inserted</code> field changes in <code>_KAPC</code> . I hope this little intro gave you something informative and I hope you enjoy the read.</p>
+<p>Happy hacking everyone !.</p>
+
       </div>
       <div class="post-tags-categories">
+        
+        <div class="tags">
+          
+            <a href="/tags/Windows/" class="">
+              Windows
+            </a>
+          
+        </div>
         
       </div>
       
@@ -503,6 +634,23 @@
 
 
 
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2023/05/22/From-RCE-to-owning-entire-cloud-infrastructure/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">Red team: Journey from RCE to have total control of cloud infrastructure </div>
+      </div>
+      <!-- <div class="content">
+        DescriptionIn my latest red team engagement for a very large
+      </div> -->
+    </a>
+  </div>
 
 </div>
 
@@ -697,53 +845,29 @@
   <div class="layout_sticky">    
     
       
-        
-    <section class="widget side_category">
-      
+<section class="widget side_toc">
+  
   <header>
     
-      <a style="color: " href='/blog/categories/'><i class="fas fa-folder-open fa-fw" aria-hidden="true"></i><span class='name'>Categories</span></a>
+      <i style="color: " class="fas fa-list fa-fw" aria-hidden="true"></i><span class='name' style="color: ">Welcome to my blog</span>
     
   </header>
 
 
-      <div class='content'>
-        <ul class="entry navigation">
-          
-            <li><a class="flat-box"
-              title="/categories/red-team/" href="/categories/red-team/"
-              id="categoriesred-team"
-              ><div class='name'>red team</div><div class='badge'>(1)</div></a></li>
-          
-            <li><a class="flat-box"
-              title="/categories/research/" href="/categories/research/"
-              id="categoriesresearch"
-              ><div class='name'>research</div><div class='badge'>(9)</div></a></li>
-          
-        </ul>
+  <div class='content'>
+    <div class="toc-main">
+      <div class="toc-content">
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#APC-Asynchronous-Procedure-Calls"><span class="toc-text">APC - Asynchronous Procedure Calls</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Setup-Kernel-debugger"><span class="toc-text">Setup Kernel debugger</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dynamic-Debugging-Kernel"><span class="toc-text">Dynamic Debugging Kernel</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Placing-the-breakpoint"><span class="toc-text">Placing the breakpoint</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#KeInitializeApc"><span class="toc-text">KeInitializeApc</span></a></li></ol></li></ol></li></ol> -->
+        <div class="toc"></div>
       </div>
-    </section>
-  
-  
-      
-      
-        
-<section class="widget side_tagcloud">
-    
-  <header>
-    
-      <a style="color: " href='/tags/'><i class="fas fa-tags fa-fw" aria-hidden="true"></i><span class='name'>Tags</span></a>
-    
-  </header>
-
-
-    <div class='content'>
-    <a href="/tags/net-c-deserialization/" style="font-size: 14px; color: #999">.net,c#, deserialization</a> <a href="/tags/0day-cve-2022-26134/" style="font-size: 14px; color: #999">0day, cve-2022-26134</a> <a href="/tags/0day-cve-2022-29464/" style="font-size: 14px; color: #999">0day, cve-2022-29464</a> <a href="/tags/0day-log4j-cve-2021-44228/" style="font-size: 14px; color: #999">0day, log4j, cve-2021-44228</a> <a href="/tags/CVE-2021-26084-Web-Security/" style="font-size: 14px; color: #999">CVE-2021-26084, Web Security</a> <a href="/tags/Crypto/" style="font-size: 14px; color: #999">Crypto</a> <a href="/tags/java-deserialization/" style="font-size: 24px; color: #555">java, deserialization</a> <a href="/tags/red-team-kubernetes/" style="font-size: 14px; color: #999">red-team, kubernetes</a>
     </div>
+  </div>
 </section>
+<!-- 手机端目录按钮 -->
+<div id="toc-mobile-btn">
+  <i class="fas fa-list-ul" aria-hidden="true"></i>
+</div>
 
-  
-      
       
   <section class="widget side_recent_post">
     
@@ -766,7 +890,7 @@
             
 
             <div class="post-img-box">
-              <a href="/2025/12/01/hello-world/" class="post-img " style="background-size: cover; 
+              <a href="/2025/12/04/Where-does-APC-go/" class="post-img " style="background-size: cover; 
                 background-position: center center;">
                 <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
               </a>
@@ -774,10 +898,10 @@
             <div class="post-date-title">
               <div>
                 
-                  <span class="post-date">12-01</span>
+                  <span class="post-date">12-04</span>
                 
               </div>
-              <a class="post-title" href="/2025/12/01/hello-world/">Hello World</a>
+              <a class="post-title" href="/2025/12/04/Where-does-APC-go/">Where does my APC function go ?</a>
             </div>
           </div>
         
@@ -869,14 +993,6 @@
     </div>
   </section>
 
-      
-  <section class="widget side_archives">
-    
-    <header><a style="color: red" href='/archives/'><i class="fas fa-archive fa-fw" aria-hidden="true"></i><span class='name'>Archives</span></a></header><div class="content"><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/12/"><span class="card-archive-list-date">December 2025</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/05/"><span class="card-archive-list-date">May 2023</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2022/07/"><span class="card-archive-list-date">July 2022</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2022/06/"><span class="card-archive-list-date">June 2022</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2022/04/"><span class="card-archive-list-date">April 2022</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2022/03/"><span class="card-archive-list-date">March 2022</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2022/01/"><span class="card-archive-list-date">January 2022</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/12/"><span class="card-archive-list-date">December 2021</span><span class="card-archive-list-count">1</span></a></li></ul></div>
-  </section>
-
-      
-      
     
   </div>
 </aside>
