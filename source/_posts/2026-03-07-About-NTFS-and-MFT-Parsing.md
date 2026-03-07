@@ -7,7 +7,11 @@ img: /images/MFT_table_1.png
 
 # Introduction
 
-The topic of Window NT File System ( NTFS ) is not new in the DFIR world, the ability to directly parsing  on-disk structures of a mounted NTFS volume holds a lot of power and can definitely be interesting for both Offensive side and Defensive side. And it also a fun project to research to understand more about Windows ecosystem. In this blog, we going to find out more about how a file presents on Windows system, a lifecycle of a file and more...
+The topic of Window NT File System ( NTFS ) is not new in the DFIR world, the ability to directly parsing  on-disk structures of a mounted NTFS volume holds a lot of power and can definitely be interesting for both Offensive side and Defensive side. And it also a fun project to research to understand more about Windows ecosystem. 
+
+In this blog, we going to find out more about how a file presents on Windows system, a lifecycle of a file and more...
+
+This blog post is not meant to introduce any new concepts or techniques, things written below are well covered by the community probably 10 years ago. But on the Offensive side, I don't see much article or blog post about it. That's why I'm writing this to hopefully revive its amazing capabilities.
 
 # NTFS and MFT overview
 
@@ -257,3 +261,12 @@ As you can see, `SAM` file is being held by `SYSTEM` process,
 Using `MFTTool` ( [GitHub - Kudaes/MFTool: Direct access to NTFS volumes](https://github.com/Kudaes/MFTool) )
 
 ![Successfully extract SAM database](/images/MFT-3.png)
+
+# Wrapping up
+
+NTFS and MFT parsing have been used for a long time in Foresic & defensive world. I'd love to see more usages of it in an offensive way. 
+
+Maybe a post-ex module allows you to extract SAM database without touching registries and opening handles ?
+
+Maybe a BOF module about MFT parsing for Cobalt or any other C2 ?. This'd be hard, but not impossible. Especially in the "everything is AI" generation .
+

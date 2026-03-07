@@ -498,7 +498,9 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>The topic of Window NT File System ( NTFS ) is not new in the DFIR world, the ability to directly parsing  on-disk structures of a mounted NTFS volume holds a lot of power and can definitely be interesting for both Offensive side and Defensive side. And it also a fun project to research to understand more about Windows ecosystem. In this blog, we going to find out more about how a file presents on Windows system, a lifecycle of a file and more…</p>
+        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>The topic of Window NT File System ( NTFS ) is not new in the DFIR world, the ability to directly parsing  on-disk structures of a mounted NTFS volume holds a lot of power and can definitely be interesting for both Offensive side and Defensive side. And it also a fun project to research to understand more about Windows ecosystem. </p>
+<p>In this blog, we going to find out more about how a file presents on Windows system, a lifecycle of a file and more…</p>
+<p>This blog post is not meant to introduce any new concepts or techniques, things written below are well covered by the community probably 10 years ago. But on the Offensive side, I don’t see much article or blog post about it. That’s why I’m writing this to hopefully revive its amazing capabilities.</p>
 <h1 id="NTFS-and-MFT-overview"><a href="#NTFS-and-MFT-overview" class="headerlink" title="NTFS and MFT overview"></a>NTFS and MFT overview</h1><p>For more information, you can refer to this excellent documentation: <a target="_blank" rel="noopener" href="https://ntfs.com/ntfs_basics.htm">NTFS Overview - NTFS.com</a></p>
 <p>The NTFS file system views each file (or folder) as a set of file attributes. Elements such as the file’s name, its security information, and even its data, are all file attributes. Each attribute is identified by an attribute type code and, optionally, an attribute name.</p>
 <p>When a file’s attributes can fit within the MFT file record, they are called resident attributes. For example, information such as filename and time stamp are always included in the MFT file record.</p>
@@ -621,6 +623,9 @@
 <p>As you can see, <code>SAM</code> file is being held by <code>SYSTEM</code> process,</p>
 <p>Using <code>MFTTool</code> ( <a target="_blank" rel="noopener" href="https://github.com/Kudaes/MFTool">GitHub - Kudaes&#x2F;MFTool: Direct access to NTFS volumes</a> )</p>
 <p><img src="/images/MFT-3.png" class="lazyload placeholder" data-srcset="/images/MFT-3.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="Successfully extract SAM database"></p>
+<h1 id="Wrapping-up"><a href="#Wrapping-up" class="headerlink" title="Wrapping up"></a>Wrapping up</h1><p>NTFS and MFT parsing have been used for a long time in Foresic &amp; defensive world. I’d love to see more usages of it in an offensive way. </p>
+<p>Maybe a post-ex module allows you to extract SAM database without touching registries and opening handles ?</p>
+<p>Maybe a BOF module about MFT parsing for Cobalt or any other C2 ?. This’d be hard, but not impossible. Especially in the “everything is AI” generation .</p>
 
       </div>
       <div class="post-tags-categories">
@@ -867,7 +872,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NTFS-and-MFT-overview"><span class="toc-text">NTFS and MFT overview</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Timestomping"><span class="toc-text">Timestomping</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Life-cycle-of-a-file"><span class="toc-text">Life cycle of a file</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MFT-Parsing"><span class="toc-text">MFT Parsing</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Fetch-data-of-file-based-on-MFT-parsing"><span class="toc-text">Fetch data of file based on MFT parsing</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Use-case"><span class="toc-text">Use case</span></a></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#NTFS-and-MFT-overview"><span class="toc-text">NTFS and MFT overview</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Timestomping"><span class="toc-text">Timestomping</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Life-cycle-of-a-file"><span class="toc-text">Life cycle of a file</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MFT-Parsing"><span class="toc-text">MFT Parsing</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Fetch-data-of-file-based-on-MFT-parsing"><span class="toc-text">Fetch data of file based on MFT parsing</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Use-case"><span class="toc-text">Use case</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Wrapping-up"><span class="toc-text">Wrapping up</span></a></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>
