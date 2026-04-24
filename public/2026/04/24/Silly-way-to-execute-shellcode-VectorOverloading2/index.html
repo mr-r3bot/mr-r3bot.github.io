@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>archives | Quang Vo</title>
+  <title>Silly way to execute shellcode - VectorOverloading2 | Quang Vo</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -447,156 +447,639 @@
   
 </header>
         <!-- 内容区域 -->
-        <div class="bg-dark-floor" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -2;"></div>
-<div class="bg-light-floor-archive" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -3;"></div>
-<div class="archive-header" style="background-image:url('https://pic1.zhimg.com/80/v2-1414b3a4b205e19060db18a20d08723a_1440w.jpg?source=1940ef5c')">
-  <div class="archive-header-title">
-    archive
-  </div>
-  <div class="archive-header-desc">
-  
-  <span class="title" id="archive-header-desc"></span>
-  <script>
-  function typedFn() {
-    const el = '#archive-header-desc';
-    const type = 'archive';
-    let desc = 'Archive posts'
-    var typed = new Typed(el, {
-      strings: [desc],
-      startDelay: 100,
-      typeSpeed: 100,
-      loop: true,
-      backSpeed: 50,
-      showCursor: true
-    });
-  }
-  typedFn();
-</script>
-  
-  </div>
-  <div class="mask-box"></div>
-</div>
+        
+<!-- prismjs 代码高亮 -->
 
-<div class="archive-video">
-  <video class="full-video" autoplay loop muted>
-      <source style="width: 100%;height: 100vh;" src="/">
-  </video>
-  <div class="video-header-title">
-    archive
-  </div>
-  <div class="video-header-desc">
+
+
+
+<div class="bg-dark-floor" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -1;"></div>
+
+
+  <!-- 文章详情页顶部图片和标题 -->
+
+
+
+
+<div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
+  background-position: center center;position: relative;background-image:url('https://pic4.zhimg.com/80/v2-e434e3a2888fb4efb1844845b8791d1f_1440w.webp')">
+  <div class="post-detail-header-mask"></div>
+  <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
-      <span class="title" id="archive-video-header-desc"></span>
-      <script>
-  function typedFn() {
-    const el = '#archive-video-header-desc';
-    const type = 'archive';
-    let desc = 'Archive posts'
-    var typed = new Typed(el, {
-      strings: [desc],
-      startDelay: 100,
-      typeSpeed: 100,
-      loop: true,
-      backSpeed: 50,
-      showCursor: true
-    });
-  }
-  typedFn();
-</script>
+  <div class="post-detail-header_info-box">
+    <div class="title-box">
+      <span class="title">
+        Silly way to execute shellcode - VectorOverloading2
+      </span>
+    </div>
+    
+    
       
+        <span class="post-detail-header_date">
+          <i class="fas fa-calendar"></i> Published in：2026-04-24 |
+        </span>
+      
+
+      
+
+      
+    
   </div>
-  <div class="mask-box"></div>
+  
+  
 </div>
 
-<!-- hash算法 -->
 
 
-<div class="archive-main">
-  <section class="archive">
-    <div class="archive-content">
-      <ul class="post-archive">
+
+
+<div class="post-detail-content post-row" 
+  style="padding-top: 0px;">
+  <div class="main-content">
+    <article class="post post-detail">
+      <div class="post-content">
+        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>Vector Overloading is a local PE injection technique first observed in <a target="_blank" rel="noopener" href="https://research.checkpoint.com/2025/gachiloader-node-js-malware-with-api-tracing/">Checkpoint SW blog - GachiLoader</a> . It abuses the Windows PE Loader process itself to map a “malicious” payload into memory, hiding behind a legitimate DLL load operation.</p>
+<p>The technique was covered in the blog post designed for a <strong>legitimate PE file</strong> , when I read about this technique I’m curious what will happens when you try to replace it and make it load shellcode instead. So in this blog post, I will walk you through what’s needed to be done to get shellcode executed, it might be silly and not very “evasive”, but it’s fun</p>
+<h2 id="Summary-of-VectorOverloading-technique"><a href="#Summary-of-VectorOverloading-technique" class="headerlink" title="Summary of VectorOverloading technique"></a>Summary of VectorOverloading technique</h2><p>The <strong>VectorOverloading</strong> technique is used for a <strong>legitimate PE fie</strong> , which means valid <strong>PE headers, and all other stuffs</strong> ( You can read the original blog post of CheckpointSW for more details, they did a great job at covering it ). </p>
+<p>VectorOverloading technique includes 2 phases:</p>
+<p><strong>Phase 1: Prepare the section</strong> </p>
+<ul>
+<li><code>CreateFileW ( &quot;wmp.dll&quot; )</code> : Open the “donor” DLL from Disk</li>
+<li><code>NtCreateSection ( SEC_IMAGE )</code> : Create section object backed by <strong>wmp.dll</strong></li>
+<li><code>NtMapViewOfSection</code> ( PAGE RW) : Map it to process </li>
+<li>Wipe out the donor’s DLL content, write our PE</li>
+<li>Handling PE relocations, memory protections, …</li>
+</ul>
+<p><strong>Phase 2: Hijack the DLL load via VEH</strong></p>
+<p>The techniques work with two interception points:</p>
+<ul>
+<li>Register VEH and set HWBP ( Hardware breakpoint on <code>NtOpenSection</code> )</li>
+<li>Trigger <code>LoadLibraryW(&quot;amsi.dll&quot;)</code> ( it can be any dll, just to kick off the PE loader process. the GachiLoader use <code>amsi.dll</code> because it’s lower detection rate )</li>
+<li><code>NtOpenSection</code> : HWBP number 1, replace section handle with ours ( the Windows PE Loader think it opened <code>amsi.dll</code> ‘s section, but we gave it our <code>wmp.dll</code> -backed section )</li>
+<li><code>NtMapViewOfSection</code> : HWBP number 2, replace base address and ViewSize with our pre-mapped Views</li>
+<li>Windows PE Loader processes our mapped image, walks import table, resvole imports, applies section protections, resolve relocations, … everything is perfect and look like a legitimate <code>amsi.dll</code> loaded into process</li>
+</ul>
+<p>By creating a <code>SEC_IMAGE</code> section from a legitimate, signed Microsoft DLL, your payload’s memory now living in a back memory with legitimate signatures. </p>
+<p>That’s sound good, can we extend this method to shellcode&#x2F;sRDI for extra flexibility, since a lot of PEs can be turned into sRDI, and we can easily add our evasive tradecraft on top by using <a target="_blank" rel="noopener" href="https://tradecraftgarden.org/">Tradecraft Garden</a></p>
+<h2 id="Changing-payload-to-shellcode-instead-of-PE-file"><a href="#Changing-payload-to-shellcode-instead-of-PE-file" class="headerlink" title="Changing payload to shellcode instead of PE file"></a>Changing payload to shellcode instead of PE file</h2><p>When your payload is a <strong>shellcode&#x2F;sRDI</strong> with no PE headers, everything changed because <strong>VectorOverloading</strong> heavily rely on Windows PE Loader to load the PE payload. But the shellcode doesn’t need PE Loader’s help, it resolves its own imports, relocations, … </p>
+<p>So what went wrong when we try to give it a shellcode payload, <code>beacon_x64.bin</code> for example </p>
+<p>After <code>NtMapViewOfSection</code> is intercepted, the loader expect the mapped memory is a PE image with valid PE charasteristics, headers, … but instead it finds no PE haeder ( no <code>MZ</code> signature )</p>
+<p>At this point, the Windows PE Loader will <strong>fails</strong> . What does Windows PE Loader do after this process fails  to load ?. </p>
+<p>It cleans up by calling <code>NtUnmapViewOfSection</code> which will end up win your shellcode payload is unmmaped from memory before it get a chance to executed. </p>
+<h3 id="Attempting-to-make-VectorOverloading2"><a href="#Attempting-to-make-VectorOverloading2" class="headerlink" title="Attempting to make VectorOverloading2"></a>Attempting to make VectorOverloading2</h3><p>The loader calls <code>NtUnmapViewOfSection</code> on the base address to undo the mapping, so your shellcode vanishes.  What if you intercept <code>NtUnmapViewOfSection</code> to prevent it from doing so ?.</p>
+<p>We can do this by:</p>
+<ul>
+<li>Placing a third HWBP on <code>NtUnmapViewOfSection</code> to skip the syscall entirely</li>
+<li>Set <code>RAX = 0 </code> ( STATUS_SUCCESS) , clean up all HWBPs of the 2 inteception points.</li>
+</ul>
+<p>Windows PE Loader thinks unmap process is succeed, but our shellcode still lives in memory.</p>
+<p><strong>Copied from VectorOverloading.cpp source code</strong> (<a target="_blank" rel="noopener" href="https://github.com/CheckPointSW/VectoredOverloading/blob/main/main.cpp#L68">https://github.com/CheckPointSW/VectoredOverloading/blob/main/main.cpp#L68</a> )</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">LONG <span class="title">InjectHandler</span> <span class="params">( PEXCEPTION_POINTERS ExceptionInfo )</span> </span>&#123;</span><br><span class="line">    <span class="comment">// First 2 interception points </span></span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Intercept NtUnmapViewOfSection - VectorOverloading2</span></span><br><span class="line">    <span class="keyword">case</span> LdrState::StateClose: &#123;</span><br><span class="line">      <span class="keyword">if</span> ( ( PVOID ) ctx-&gt;Rdx != gBaseAddress )</span><br><span class="line">        <span class="keyword">return</span> EXCEPTION_CONTINUE_EXECUTION;</span><br><span class="line"></span><br><span class="line">      <span class="built_in">printf</span> ( <span class="string">&quot;[*] gLdrState == LdrState::StateClose (intercepted &quot;</span></span><br><span class="line">        <span class="string">&quot;NtUnmapViewOfSection)\r\n&quot;</span> );</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Skip syscall</span></span><br><span class="line">      ctx-&gt;Rax = <span class="number">0</span>;</span><br><span class="line">      BYTE* rip = ( BYTE* ) ctx-&gt;Rip;</span><br><span class="line">      <span class="keyword">while</span> ( *rip != <span class="number">0xC3</span> )</span><br><span class="line">        ++rip;</span><br><span class="line">      ctx-&gt;Rip = ( ULONG_PTR ) (rip);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Clear all HWBP</span></span><br><span class="line">      ctx-&gt;Dr0 = <span class="number">0LL</span>;</span><br><span class="line">      ctx-&gt;Dr1 = <span class="number">0LL</span>;</span><br><span class="line">      ctx-&gt;Dr2 = <span class="number">0LL</span>;</span><br><span class="line">      ctx-&gt;Dr3 = <span class="number">0LL</span>;</span><br><span class="line">      ctx-&gt;Dr6 = <span class="number">0LL</span>;</span><br><span class="line">      ctx-&gt;Dr7 = <span class="number">0LL</span>;</span><br><span class="line">      ctx-&gt;EFlags |= <span class="number">0x10000u</span>;</span><br><span class="line"></span><br><span class="line">      <span class="built_in">NtContinue</span> ( ctx, FALSE );</span><br><span class="line">      <span class="keyword">return</span> EXCEPTION_CONTINUE_EXECUTION;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="Profit"><a href="#Profit" class="headerlink" title="Profit"></a>Profit</h3><p>We have successfully adapt this technique to load Cobalt beacon. </p>
+<p>Also one of the other benefit besides you can extend this and apply any evasive tradecraft with sRDI, is that you can safely remove the PE mapping ( copy sections, fix relocations, process imports, … ) because you don’t need it anymore.</p>
+<p><img src="/images/vector_overload2.jpg" class="lazyload placeholder" data-srcset="/images/vector_overload2.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="Exec shellcode by adapting VectorOverLoading"></p>
+<p>I don’t think this technique provides any addition of stealth&#x2F;evasion in any means, it’s just fun to do and to research how far our capabilities can reach. </p>
+<p>It did successfully help us to get back a beacon in security product X, the image below is not for name and shame, it’s just an interesting observation. When the background scan of product X kicks in, it detects and kill our process immediately</p>
+<p>If you have any ideas to push this further, please do let me know </p>
+<p><img src="/images/vector_overload2_2.jpg" class="lazyload placeholder" data-srcset="/images/vector_overload2_2.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="Get cobalt beacon and perform spawn inject"></p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference:"></a>Reference:</h2><ul>
+<li>Full source code can be found <a target="_blank" rel="noopener" href="https://github.com/mr-r3bot/VectorOverloading2">here</a></li>
+<li><a target="_blank" rel="noopener" href="https://research.checkpoint.com/2025/gachiloader-node-js-malware-with-api-tracing/">https://research.checkpoint.com/2025/gachiloader-node-js-malware-with-api-tracing/</a></li>
+<li><a target="_blank" rel="noopener" href="https://tradecraftgarden.org/">https://tradecraftgarden.org/</a></li>
+</ul>
+
+      </div>
+      <div class="post-tags-categories">
+        
+      </div>
+      
+    </article>
+    <!-- 上一篇文章和下一篇文章 -->
+    
+      <!-- 文章详情页的上一页和下一页 -->
+<div class="post-nav">
+
+
+
+
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="/images/MFT_table_1.png" class="lazyload placeholder" data-srcset="/images/MFT_table_1.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+    </div>
+    <a href="/2026/03/07/About-NTFS-and-MFT-Parsing/" class="post-nav-link">
+      <div class="title">
+        Next: <i class="fas fa-angle-right"></i>
+        <div class="title-text">About NTFS and MFT Parsing</div>
+      </div>
+      <!-- <div class="content">
+        IntroductionThe topic of Window NT File System ( NTFS ) is n
+      </div> -->
+    </a>
+  </div>
+
+</div>
+
+    
+    
+
+    <!-- 打赏 -->
+    
+      <div id="appDonate" class="post-donate">
+  <div id="donate_board" class="donate_bar center" ref="donate">
+    <a id="btn_donate" class="btn_donate" href="javascript:;" title="打赏" @click="showDialogDrawer()"></a>
+  </div>
+  <transition name="fade">
+    <div 
+      class="donate-box-mask"
+      v-cloak 
+      v-show="visible"
+      @click="cancelDialogDrawer()"
+    >
+    </div>
+  </transition>
+  <transition name="bounce">
+    <div class="donate-box" v-cloak v-show="visible">
+      <div class="donate-box_close">
+        <i class="fas fa-times" aria-hidden="true" @click="cancelDialogDrawer" pointer></i>
+      </div>
+      <div class="donate-box_title">
+        <h4>
+          你的赏识是我前进的动力
+        </h4>
+      </div>
+      <div class="donate-box_tab">
+        <div class="Alipay" pointer :class="{'active': tabActive === 'Alipay'}" @click="changeTabActive('Alipay')">
+          支付宝
+        </div>
+        <div class="WeChatpay" pointer :class="{'active': tabActive === 'WeChatpay'}" @click="changeTabActive('WeChatpay')">
+          微信
+        </div>
+      </div>
+      <div class="donate-box_img">
+        <div class="AlipayImg" v-show="tabActive === 'Alipay'">
+          <img src="https://pica.zhimg.com/80/v2-61f99f8dcf899f54cad2a1aa28b21e44_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-61f99f8dcf899f54cad2a1aa28b21e44_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="支付宝打赏" />
+        </div> 
+        <div class="WeChatpayImg" v-show="tabActive === 'WeChatpay'">
+          <img src="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-29e78b52051ce542adf6d786d61fbd19_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="微信打赏" />
+        </div>
+      </div>
+    </div>
+  </transition>
+</div>
+
+<script>
+  var body = document.body || document.documentElement || window;
+  var vm = new Vue({
+    el: '#appDonate',
+    data: {
+      visible: false,
+      tabActive: 'Alipay',
+      top: 0,
+    },
+    computed: {
+    },
+    mounted() {
+    },
+    methods: {
+      showDialogDrawer() {
+        this.visible = true;
+        // 防止页面滚动，只能让弹框滚动
+        // function getScroll() {
+        //   return {
+        //     left: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0,
+        //     top: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+        //   };
+        // }
+        this.top = $(document).scrollTop() // or getScroll().top
+        // console.log('aa', $('.main-content'));
+        body.style.cssText = 'overflow: hidden;';
+      },
+      cancelDialogDrawer() {
+        this.visible = false;
+        body.removeAttribute('style');
+        $(document).scrollTop(this.top)
+      },
+      changeTabActive(name) {
+        this.tabActive = name;
+      }
+    },
+    created() {}
+  })
+</script>
+    
+
+    <!-- 分享 -->
+    
+      <!-- https://github.com/overtrue/share.js -->
+<!-- 文章详情页的分享 -->
+<div class="social-share" data-sites="twitter, facebook, linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+
+<script defer src="/js/shareJs/social-share.min.js"></script>
+</script>
+
+<style>
+  .social-share {
+    margin: 20px 0;
+  }
+</style>
+
+
+    
+    
+    <!-- 评论 -->
+    <!-- 评论 -->
+
+  <div id="myComment">
+    
+      <div id="gitment-container"></div>
+
+    
+  </div>
+
+
+<!-- 还需要在后面这个地址里设置script, comment script in themes\hexo-theme-bamboo\layout\_partial\scripts\index.ejs -->
+
+
+  </div>
+
+  <!-- 目录 -->
+  <aside id='l_side'>
+  
+    
+      <section class="widget side_blogger">
+  <div class='content'>
+    
+      
+        <a class='avatar flat-box rectangle' href='/about/'>
+          <img src='https://pic2.zhimg.com/80/v2-42b72d5ebee4b8d8aa70d9687effe87b_1440w.webp'/>
+        </a>
+      
+    
+    
+      <div class='text'>
+        
+          <h2>Mr R3bot</h2>
         
         
+          <p>Malware Researcher, Windows internals enthusiast</p>
+
+        
+        
+      </div>
+    
+    
+      <div class="social-wrapper">
+        
           
-            
-            <div class="year" data-aos="zoom-in-up">
-                <div class="bullet"></div>
-                <a href="/archives/2021">2021</a>
-            </div>
+            <a href="/atom.xml"
+              class="social fas fa-rss flat-btn"
+              target="_blank"
+              rel="external nofollow noopener noreferrer">
+              
+            </a>
           
-          <li class="post-item" data-aos="fade-left">
+        
+          
+            <a href="https://github.com/mr-r3bot"
+              class="social fab fa-github flat-btn"
+              target="_blank"
+              rel="external nofollow noopener noreferrer">
+              
+            </a>
+          
+        
+          
+            <a href="https://twitter.com/mr_r3bot"
+              class="social fab fa-twitter flat-btn"
+              target="_blank"
+              rel="external nofollow noopener noreferrer">
+              
+            </a>
+          
+        
+      </div>
+    
+  </div>
+</section>
+
+    
+  
+  
+  
+
+  <div class="layout_sticky">    
+    
+      
+<section class="widget side_toc">
+  
+  <header>
+    
+      <i style="color: " class="fas fa-list fa-fw" aria-hidden="true"></i><span class='name' style="color: ">Welcome to my blog</span>
+    
+  </header>
+
+
+  <div class='content'>
+    <div class="toc-main">
+      <div class="toc-content">
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Summary-of-VectorOverloading-technique"><span class="toc-text">Summary of VectorOverloading technique</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Changing-payload-to-shellcode-instead-of-PE-file"><span class="toc-text">Changing payload to shellcode instead of PE file</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Attempting-to-make-VectorOverloading2"><span class="toc-text">Attempting to make VectorOverloading2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Profit"><span class="toc-text">Profit</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-text">Reference:</span></a></li></ol></li></ol> -->
+        <div class="toc"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- 手机端目录按钮 -->
+<div id="toc-mobile-btn">
+  <i class="fas fa-list-ul" aria-hidden="true"></i>
+</div>
+
+      
+  <section class="widget side_recent_post">
+    
+  <header>
+    
+      <a style="color: " href='/tags/'><i class="fas fa-book fa-fw" aria-hidden="true"></i><span class='name'>Recent posts</span></a>
+    
+  </header>
+
+
+    <div class='content'>
+      
+      <!-- hash算法 -->
+      
+      <div class="aside-list">
+        
+          <div class="aside-list-item">
             
+            
+            
+
             <div class="post-img-box">
-              <a href="/2021/09/27/Attacking-AES-ECB-mode/" class="post-img " style="background-size: cover; 
+              <a href="/2026/04/24/Silly-way-to-execute-shellcode-VectorOverloading2/" class="post-img " style="background-size: cover; 
                 background-position: center center;">
-                <img class="lazyload lazyload placeholder" src="https://pica.zhimg.com/80/v2-61f99f8dcf899f54cad2a1aa28b21e44_1440w.webp" class="lazyload placeholder" data-srcset="https://pica.zhimg.com/80/v2-61f99f8dcf899f54cad2a1aa28b21e44_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic4.zhimg.com/80/v2-e434e3a2888fb4efb1844845b8791d1f_1440w.webp" class="lazyload placeholder" data-srcset="https://pic4.zhimg.com/80/v2-e434e3a2888fb4efb1844845b8791d1f_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
               </a>
             </div>
             <div class="post-date-title">
               <div>
-                <span class="post-date">09-27</span>
+                
+                  <span class="post-date">04-24</span>
+                
               </div>
-              <a class="post-title" href="/2021/09/27/Attacking-AES-ECB-mode/">DownUnder CTF 2021 - Attacking AES ECB mode - Break Me challenge</a>
+              <a class="post-title" href="/2026/04/24/Silly-way-to-execute-shellcode-VectorOverloading2/">Silly way to execute shellcode - VectorOverloading2</a>
             </div>
-          </li>
+          </div>
         
-          
-          <li class="post-item" data-aos="fade-left">
+          <div class="aside-list-item">
             
+            
+            
+
             <div class="post-img-box">
-              <a href="/2021/09/01/A-Look-Into-Confluence-RCE/" class="post-img " style="background-size: cover; 
+              <a href="/2026/03/07/About-NTFS-and-MFT-Parsing/" class="post-img " style="background-size: cover; 
                 background-position: center center;">
-                <img class="lazyload lazyload placeholder" src="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-5f7cb7e900b9dcf5354c3d4d2c5cc3c2_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="/images/MFT_table_1.png" class="lazyload placeholder" data-srcset="/images/MFT_table_1.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
               </a>
             </div>
             <div class="post-date-title">
               <div>
-                <span class="post-date">09-01</span>
+                
+                  <span class="post-date">03-07</span>
+                
               </div>
-              <a class="post-title" href="/2021/09/01/A-Look-Into-Confluence-RCE/">A look into CVE-2021-26084 Confluence RCE </a>
+              <a class="post-title" href="/2026/03/07/About-NTFS-and-MFT-Parsing/">About NTFS and MFT Parsing</a>
             </div>
-          </li>
+          </div>
         
-          
-          <li class="post-item" data-aos="fade-left">
+          <div class="aside-list-item">
             
+            
+            
+
             <div class="post-img-box">
-              <a href="/2021/08/16/My-journey-to-reproduce-Proxyshell-(reported%20by%20Orange%20Tsai)/" class="post-img " style="background-size: cover; 
+              <a href="/2025/12/04/Where-does-APC-go/" class="post-img " style="background-size: cover; 
                 background-position: center center;">
-                <img class="lazyload lazyload placeholder" src="https://pic4.zhimg.com/80/v2-e434e3a2888fb4efb1844845b8791d1f_1440w.webp" class="lazyload placeholder" data-srcset="https://pic4.zhimg.com/80/v2-e434e3a2888fb4efb1844845b8791d1f_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="/images/apc-3.png" class="lazyload placeholder" data-srcset="/images/apc-3.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
               </a>
             </div>
             <div class="post-date-title">
               <div>
-                <span class="post-date">08-16</span>
+                
+                  <span class="post-date">12-04</span>
+                
               </div>
-              <a class="post-title" href="/2021/08/16/My-journey-to-reproduce-Proxyshell-(reported%20by%20Orange%20Tsai)/">My journey to reproduce the Proxyshell exploit chain (reported by Orange Tsai)</a>
+              <a class="post-title" href="/2025/12/04/Where-does-APC-go/">Where does my APC function go ?</a>
             </div>
-          </li>
+          </div>
         
-      </ul>
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2023/05/22/From-RCE-to-owning-entire-cloud-infrastructure/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">05-22</span>
+                
+              </div>
+              <a class="post-title" href="/2023/05/22/From-RCE-to-owning-entire-cloud-infrastructure/">Red team: Journey from RCE to have total control of cloud infrastructure </a>
+            </div>
+          </div>
+        
+          <div class="aside-list-item">
+            
+            
+            
+
+            <div class="post-img-box">
+              <a href="/2022/07/18/Analyze-.NET-deserialization:-TypeConfuseDelegate-gadget/" class="post-img " style="background-size: cover; 
+                background-position: center center;">
+                <img class="lazyload lazyload placeholder" style="width:100%;height:100%;object-fit:cover;" data-src="https://pic3.zhimg.com/80/v2-e5c15010b8ba4608a1974403a02a2da0_1440w.webp" class="lazyload placeholder" data-srcset="https://pic3.zhimg.com/80/v2-e5c15010b8ba4608a1974403a02a2da0_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
+              </a>
+            </div>
+            <div class="post-date-title">
+              <div>
+                
+                  <span class="post-date">07-18</span>
+                
+              </div>
+              <a class="post-title" href="/2022/07/18/Analyze-.NET-deserialization:-TypeConfuseDelegate-gadget/">Analyze .NET deserialization: TypeConfuseDelegate gadget chain with BinaryFormatter</a>
+            </div>
+          </div>
+        
+      </div>
     </div>
   </section>
-  <div class="w-70">
-    
-  <!-- <nav class="page-nav">
-    <a class="extend prev" rel="prev" href="/archives/">Prev</a><a class="page-number" href="/archives/">1</a><span class="page-number current">2</span>
-  </nav> -->
-  <div class="page-nav">
-    
-      <a href="/archives/"
-         class="page-nav-pre">
-         <i class="fas fa-angle-left"></i><span class="ml-5">Prev</span>
-      </a>
-    
-    <div class="page-info">
-        <div class="page-info-text">2 / 2</div>
-    </div>
-    
-  </div>
 
+    
   </div>
+</aside>
+
+  <!-- 图片放大 Wrap images with fancybox support -->
+  <script defer src="/js/wrapImage.js"></script>
 </div>
+
+<!-- 文章详情页背景图 -->
+<div id="appBgSwiper" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -2;"
+	:style="{'background-color': bgColor ? bgColor : 'transparent'}">
+	<transition-group tag="ul" :name="names">
+		<li v-for='(image,index) in img' :key='index' v-show="index === mark" class="bg-swiper-box">
+			<img :src="image" class="bg-swiper-img no-lazy">
+		</li>
+	</transition-group>
+</div>
+<script>
+	var vm = new Vue({
+		el: '#appBgSwiper',
+		data: {
+			names: '' || 'fade' || 'fade', // translate-fade fade
+			mark: 0,
+			img: [],
+			bgColor: '',
+			time: null
+		},
+		methods: {   //添加方法
+			change(i, m) {
+				if (i > m) {
+					// this.names = 'fade';
+				} else if (i < m) {
+					// this.names = 'fade';
+				} else {
+					return;
+				}
+				this.mark = i;
+			},
+			prev() {
+				// this.names = 'fade';
+				this.mark--;
+				if (this.mark === -1) {
+					this.mark = 3;
+					return
+				}
+			},
+			next() {
+				// this.names = 'fade';
+				this.mark++;
+				if (this.mark === this.img.length) {
+					this.mark = 0;
+					return
+				}
+			},
+			autoPlay() {
+				// this.names = 'fade';
+				this.mark++;
+				if (this.mark === this.img.length) {
+					this.mark = 0;
+					return
+				}
+			},
+			play() {
+				let bgImgDelay = '' || '180000'
+				let delay = parseInt(bgImgDelay) || 180000;
+				this.time = setInterval(this.autoPlay, delay);
+			},
+			enter() {
+				clearInterval(this.time);
+			},
+			leave() {
+				this.play();
+			}
+		},
+		created() {
+			this.play()
+		},
+		beforeDestroy() {
+			clearInterval(this.time);
+		},
+		mounted() {
+			let prop = '' || '';
+			let isImg = prop.includes('.bmp') || prop.includes('.jpg') || prop.includes('.png') || prop.includes('.tif') || prop.includes('.gif') || prop.includes('.pcx') || prop.includes('.tga') || prop.includes('.exif') || prop.includes('.fpx') || prop.includes('.psd') || prop.includes('.cdr') || prop.includes('.pcd') || prop.includes('.dxf') || prop.includes('.ufo') || prop.includes('.eps') || prop.includes('.ai') || prop.includes('.raw') || prop.includes('.WMF') || prop.includes('.webp') || prop.includes('.jpeg') || prop.includes('http://') || prop.includes('https://')
+			if (isImg) {
+				let img = prop.split(',');
+				let configRoot = '/'
+				let arrImg = [];
+				img.forEach(el => {
+					var Expression = /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?/;
+					var objExp = new RegExp(Expression);
+
+					if (objExp.test(el)) {
+						// http or https
+						arrImg.push(el);
+					} else {
+						// 非http or https开头
+						// 本地文件
+						let firstStr = el.charAt(0);
+						if (firstStr == '/') {
+							el = el.substr(1); // 删除第一个字符 '/',因为 configRoot最后一个字符为 /
+						}
+						el = configRoot + el;
+						arrImg.push(el);
+					}
+				})
+				this.img = arrImg;
+			} else {
+				this.bgColor = prop;
+			}
+		}
+	})
+</script>
+
+<style>
+	.bg-swiper-box {
+		position: absolute;
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.bg-swiper-img {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
+	}
+</style>
+
+
+
+
+  <script>
+  function loadMermaid() {
+    if (document.getElementsByClassName('mermaid').length) {
+      if (window.mermaidJsLoad) mermaid.init()
+      else {
+        loadScript('https://unpkg.com/mermaid/dist/mermaid.min.js').then(() => {
+          window.mermaidJsLoad = true
+          mermaid.initialize({
+            theme: 'dark',
+          })
+          if ('true') {
+            mermaid.init();
+          }
+        })
+      }
+    }
+  };
+  document.addEventListener("DOMContentLoaded", function () {
+    loadMermaid();
+  })
+
+  document.addEventListener('pjax:complete', function () {
+    loadMermaid();
+  })
+  
+</script>
+
 
       </main>
     </div>
