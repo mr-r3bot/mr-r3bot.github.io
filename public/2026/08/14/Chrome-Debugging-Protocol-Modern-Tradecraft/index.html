@@ -506,6 +506,7 @@
 <h1 id="Enabling-the-debugging-protocol-in-memory"><a href="#Enabling-the-debugging-protocol-in-memory" class="headerlink" title="Enabling the debugging protocol in memory"></a>Enabling the debugging protocol in memory</h1><p>The goal of this blog post won’t be about how to enable this in memory, as it has been documented carefully by @DeathFlamingo <a target="_blank" rel="noopener" href="https://deathflamingo.com/blog/cdp_enabler/">CDP-Enabler</a> . </p>
 <p>The only work need to be done is to keep it updated with chrome version 150+. In order to complete that task, I use IDA with IDA MCP Server, download the chrome.dll and chrome.pdb.<br>Tasked the LLM agents to find the vtable pointers and the correct RVAs for chrome version 150++. </p>
 <p>After couple of trials and errors, this is the result we get:</p>
+<p><img src="/images/cdp-6.jpg" class="lazyload placeholder" data-srcset="/images/cdp-6.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="In memory CDP"></p>
 <h1 id="Red-team-applications"><a href="#Red-team-applications" class="headerlink" title="Red team applications"></a>Red team applications</h1><p><img src="/images/cdp-2.jpg" class="lazyload placeholder" data-srcset="/images/cdp-2.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="CDP Toolkit"></p>
 <h2 id="1-Data-extractions"><a href="#1-Data-extractions" class="headerlink" title="1. Data extractions"></a>1. Data extractions</h2><p>To sum up, all of the data we can extract includes:</p>
 <ul>
@@ -570,8 +571,8 @@
         
         <div class="tags">
           
-            <a href="/tags/redteam/" class="">
-              redteam
+            <a href="/tags/red-team/" class="">
+              red-team
             </a>
           
         </div>

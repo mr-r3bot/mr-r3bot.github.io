@@ -1,7 +1,7 @@
 ---
 title: Chrome Debugging Protocol - Modern Tradecraft
 date: 2026-08-14 08:41:18
-tags: redteam
+tags: red-team
 img: /images/cdp.jpg
 ---
 
@@ -27,6 +27,7 @@ Tasked the LLM agents to find the vtable pointers and the correct RVAs for chrom
 
 After couple of trials and errors, this is the result we get:
 
+![In memory CDP](/images/cdp-6.jpg)
 
 
 
