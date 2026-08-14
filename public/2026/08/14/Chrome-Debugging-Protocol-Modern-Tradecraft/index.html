@@ -11,7 +11,7 @@
   <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-  <title>Where does my APC function go ? | Quang Vo</title>
+  <title>Chrome Debugging Protocol - Modern Tradecraft | Quang Vo</title>
 
   <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
@@ -462,33 +462,24 @@
 
 
 <div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
-  background-position: center center;position: relative;background-image:url('/images/apc-3.png')">
+  background-position: center center;position: relative;background-image:url('/images/cdp.jpg')">
   <div class="post-detail-header-mask"></div>
   <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
   
   <div class="post-detail-header_info-box">
     <div class="title-box">
       <span class="title">
-        Where does my APC function go ?
+        Chrome Debugging Protocol - Modern Tradecraft
       </span>
     </div>
     
     
       
         <span class="post-detail-header_date">
-          <i class="fas fa-calendar"></i> Published in：2025-12-04 |
+          <i class="fas fa-calendar"></i> Published in：2026-08-14 |
         </span>
       
 
-      
-        <span class="post-detail-header_categories">
-          <i class="iconfont iconbookmark1"></i> category：
-          
-            <a href="/categories/Windows/" class="post-detail-header_category">
-              Windows
-            </a>
-          
-        </span>
       
 
       
@@ -507,127 +498,80 @@
   <div class="main-content">
     <article class="post post-detail">
       <div class="post-content">
-        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>Early-bird injection used to be every malware author’s favorite technique to bypass Windows defender ( a long time ago tho xd ). It’s probably one of the first thing I learn when it comes to shellcode injection in malware development.</p>
-<p>One of the key part of Early-bird injection technique is the usage of <code>QueueUserApc</code> function in Windows. But I never go deeper to understand how APC works internally at kernel level and what’s behind the theory</p>
-<p>So in this blog post, we going to the journey of where does the thread go when we queueing it to the APC. I hope it’s fun for all of my readers and somewhat informative to you guys.</p>
-<h1 id="APC-Asynchronous-Procedure-Calls"><a href="#APC-Asynchronous-Procedure-Calls" class="headerlink" title="APC - Asynchronous Procedure Calls"></a>APC - Asynchronous Procedure Calls</h1><p>I will not go into the definition of what is a APC call and how to use this function, that will be left for readers to go to Microsoft documentation to figure it out. I will go deep into the implementation of <code>QueueUserApc</code> and what happens when we use the function</p>
-<p><em>QueueUserApc function</em> </p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">DWORD WINAPI <span class="title">QueueUserApc</span><span class="params">(IN PAPCFUNC pfnApc, IN HANDLE hThread, IN ULONG_PTR dwData)</span> </span></span><br></pre></td></tr></table></figure>
-
+        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>Chrome Debugging Protocol ( or CDP ) has complete access to <strong>almost</strong> everything the browser can see and can do. That make it an interesting target for Offensive Cyber operation. </p>
+<p>Abusing CDP is not new, stealers do that all the time by spawning new browser process with <code>--remote-debugging-port</code> . </p>
+<p>Why are we after CDP ?. Because browsers are information goldmines. Session tokens, saved passwords, autofill data, browsing history - it’s all there.</p>
+<p>The problem is the behavior of restarting browsers and spawning new one with <code>--remote-deubugging-port</code> almost guarantee to be flagged by most AV and EDR vendors. </p>
+<p>With that knowledge in mind, we can shift from spawning new process with suspicious params to find a way to enable the debugging port option from within running remote process browser</p>
+<h1 id="Enabling-the-debugging-protocol-in-memory"><a href="#Enabling-the-debugging-protocol-in-memory" class="headerlink" title="Enabling the debugging protocol in memory"></a>Enabling the debugging protocol in memory</h1><p>The goal of this blog post won’t be about how to enable this in memory, as it has been documented carefully by @DeathFlamingo <a target="_blank" rel="noopener" href="https://deathflamingo.com/blog/cdp_enabler/">CDP-Enabler</a> . </p>
+<p>The only work need to be done is to keep it updated with chrome version 150+. In order to complete that task, I use IDA with IDA MCP Server, download the chrome.dll and chrome.pdb.<br>Tasked the LLM agents to find the vtable pointers and the correct RVAs for chrome version 150++. </p>
+<p>After couple of trials and errors, this is the result we get:</p>
+<h1 id="Red-team-applications"><a href="#Red-team-applications" class="headerlink" title="Red team applications"></a>Red team applications</h1><p><img src="/images/cdp-2.jpg" class="lazyload placeholder" data-srcset="/images/cdp-2.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="CDP Toolkit"></p>
+<h2 id="1-Data-extractions"><a href="#1-Data-extractions" class="headerlink" title="1. Data extractions"></a>1. Data extractions</h2><p>To sum up, all of the data we can extract includes:</p>
 <ul>
-<li><code>pfnApc</code> : the APC function we want to execute</li>
-<li><code>hThread</code> : the thread we want to queue our APC</li>
-<li><code>dwData</code> : params for APC function</li>
+<li>Cookies</li>
+<li>Saved password ( trigger autofill by placing autofocus &#x2F; keymouse event )</li>
+<li>Browsing histories</li>
+<li>Bookmarks</li>
+<li>Extensions</li>
+<li>Tabs</li>
 </ul>
-<p>When we call this Usermode Apc function -  <code>QueueUserApc</code> ( ring 3 ), it will transition to <code>NtQueueApcThread</code>  kernel mode apc ( ring 0 )</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS NTAPI <span class="title">NtQueueApcThread</span><span class="params">(IN HANLDE ThreadHandle, IN PKNORMAL_ROUTINE ApcRoutine, IN PVOID NormalContext, , IN PVOID SystemArgument1, IN PVOID SystemArgument2 )</span></span></span><br></pre></td></tr></table></figure>
-
-<p>Where:</p>
+<p>Below are some of the examples</p>
+<h3 id="Cookies"><a href="#Cookies" class="headerlink" title="Cookies"></a>Cookies</h3><p><img src="/images/cdp-1.jpg" class="lazyload placeholder" data-srcset="/images/cdp-1.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="CDP Toolkit"></p>
+<p>We can extract all cookies, including <code>HttpOnly</code> and <code>Secure</code> flags </p>
+<h3 id="Tab-extensions-management"><a href="#Tab-extensions-management" class="headerlink" title="Tab, extensions management"></a>Tab, extensions management</h3><p>We can:</p>
 <ul>
-<li><code>ThreadHandle</code> will be our <code>hThread</code> from <code>QueueUserApc</code></li>
-<li><code>NormalContext</code> will be our APC function ( <code>pfnApc</code> )</li>
-<li><code>dwData</code> will be <code>SystemArgument1</code></li>
+<li>List opening tabs</li>
 </ul>
-<p>The full implementation of <code>NtQueueApcThread</code> code can be found <a target="_blank" rel="noopener" href="https://github.com/ayyucedemirbas/Windows-Research-Kernel-WRK-/blob/26b524b2d0f18de703018e16ec5377889afcf4ab/WRK-v1.2/base/ntos/ps/psctx.c#L61">here</a></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    PETHREAD Thread;</span><br><span class="line">    NTSTATUS st;</span><br><span class="line">    KPROCESSOR_MODE Mode;</span><br><span class="line">    PKAPC Apc;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">PAGED_CODE</span>();</span><br><span class="line"></span><br><span class="line">    Mode = <span class="built_in">KeGetPreviousMode</span> ();</span><br><span class="line"></span><br><span class="line">    st = <span class="built_in">ObReferenceObjectByHandle</span> (ThreadHandle,</span><br><span class="line">                                    THREAD_SET_CONTEXT,</span><br><span class="line">                                    PsThreadType,</span><br><span class="line">                                    Mode,</span><br><span class="line">                                    &amp;Thread,</span><br><span class="line">                                    <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">NT_SUCCESS</span> (st)) &#123;</span><br><span class="line">        st = STATUS_SUCCESS;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">IS_SYSTEM_THREAD</span> (Thread)) &#123;</span><br><span class="line">            st = STATUS_INVALID_HANDLE;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Apc = <span class="built_in">ExAllocatePoolWithQuotaTag</span> (NonPagedPool | POOL_QUOTA_FAIL_INSTEAD_OF_RAISE,</span><br><span class="line">                                              <span class="built_in">sizeof</span>(*Apc),</span><br><span class="line">                                              <span class="string">&#x27;pasP&#x27;</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (Apc == <span class="literal">NULL</span>) &#123;</span><br><span class="line">                st = STATUS_NO_MEMORY;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="built_in">KeInitializeApc</span> (Apc,</span><br><span class="line">                                 &amp;Thread-&gt;Tcb,</span><br><span class="line">                                 OriginalApcEnvironment,</span><br><span class="line">                                 PspQueueApcSpecialApc,</span><br><span class="line">                                 <span class="literal">NULL</span>,</span><br><span class="line">                                 (PKNORMAL_ROUTINE)ApcRoutine,</span><br><span class="line">                                 UserMode,</span><br><span class="line">                                 ApcArgument1);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (!<span class="built_in">KeInsertQueueApc</span> (Apc, ApcArgument2, ApcArgument3, <span class="number">0</span>)) &#123;</span><br><span class="line">                    <span class="built_in">ExFreePool</span> (Apc);</span><br><span class="line">                    st = STATUS_UNSUCCESSFUL;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">ObDereferenceObject</span> (Thread);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> st;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>With this, it will lead us to the core logic functions of APC workflow and its transitioning to Kernel mode:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">uv run python -m cdp_session tab list --host 127.0.0.1 --port 9001</span><br><span class="line">targetId                            url</span><br><span class="line">----------------------------------------------------------------------------------------------------</span><br><span class="line">110F3C9B86CB1FA3177698902B44FDE7    https://bitwarden.com/</span><br><span class="line">5A7B4810F6D8566C07F445C2C92B7D6C    https://www.google.com/</span><br></pre></td></tr></table></figure>
 <ul>
-<li><code>KeInitializeApc</code></li>
-<li><code>KeInsertQueueApc</code></li>
-<li><code>KeDeliverApc</code> ( later )</li>
+<li>Take a screenshot of a tab ( <code>cdp.call(&quot;Page.captureScreenshot&quot;, {&quot;format&quot;: &quot;png&quot;}</code> )</li>
 </ul>
-<p>But first, we have to setup proper debugging VM in order to debug kernel.</p>
-<h2 id="Setup-Kernel-debugger"><a href="#Setup-Kernel-debugger" class="headerlink" title="Setup Kernel debugger"></a>Setup Kernel debugger</h2><p>To sum up what you want to do to setup properly:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; uv run python -m cdp_session tab screenshot --target-id 110F3C9B86CB1FA3177698902B44FDE7 --host localhost --port 9001 -o .\abc.png</span><br><span class="line">[+] Screenshot saved: .\abc.png (166337 bytes)</span><br></pre></td></tr></table></figure>
 <ul>
-<li>Setup 2 VMs ( debugee and debugger )</li>
-<li>Enable Kernel debugging on Debugee VM</li>
-<li>Configure it to accept remote kernel debugging ( via Network is the best, lower latency ).</li>
-<li>From your debugger VM, use Windbg to connect to Debugee VM</li>
+<li>Inject javascript into running tabs</li>
 </ul>
-<p>Full guide can be found <a target="_blank" rel="noopener" href="https://idafchev.github.io/research/2023/06/28/Windows_Kernel_Debugging.html">here</a></p>
-<h2 id="Dynamic-Debugging-Kernel"><a href="#Dynamic-Debugging-Kernel" class="headerlink" title="Dynamic Debugging Kernel"></a>Dynamic Debugging Kernel</h2><p>We will code a simple program to use <code>QueueUserApc</code>, then start debugging it.</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;stdio.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">DWORD <span class="title">NewThread</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;[+] Hello from new thread \n&quot;</span>);</span><br><span class="line">		<span class="comment">// alertable state</span></span><br><span class="line">		<span class="built_in">SleepEx</span>(<span class="number">2000</span>, TRUE);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">ApcRoutine</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;[+] inside ApcRoutine \n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	HANDLE thread;</span><br><span class="line">	DWORD tid = <span class="number">0</span>;</span><br><span class="line">	thread = <span class="built_in">CreateThread</span>(<span class="literal">NULL</span>, <span class="literal">NULL</span>, (LPTHREAD_START_ROUTINE)NewThread, <span class="literal">NULL</span>, <span class="number">0</span>, &amp;tid);</span><br><span class="line">	<span class="keyword">if</span> (thread) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;[+] Thread handle: 0x%p, tid: %d \n&quot;</span>, thread, tid);</span><br><span class="line">		<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">		<span class="built_in">QueueUserAPC</span>((PAPCFUNC)ApcRoutine, thread, <span class="number">0</span>);</span><br><span class="line">		<span class="built_in">WaitForSingleObject</span>(thread, INFINITE);</span><br><span class="line">		<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Fingerprint-installed-extensions-and-extract-from-password-managers"><a href="#Fingerprint-installed-extensions-and-extract-from-password-managers" class="headerlink" title="Fingerprint installed extensions and extract from password managers"></a>Fingerprint installed extensions and extract from password managers</h3><p><img src="/images/cdp-4.jpg" class="lazyload placeholder" data-srcset="/images/cdp-4.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="CDP Toolkit"></p>
+<p>Based on known extension ids on Chrome extension store, we can reliably identify which password managers, which extensions were installed </p>
+<p>We can also identify if the password extension is currently locked ( unavailable for autofill )</p>
+<p>When the password manager extension is <strong>unlocked i.e decrypted</strong>. All of the <strong>raw passwords are available to be extracted</strong></p>
+<p><img src="/images/cdp-5.jpg" class="lazyload placeholder" data-srcset="/images/cdp-5.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="CDP Toolkit"></p>
+<h3 id="Autofill-raw-password-extraction"><a href="#Autofill-raw-password-extraction" class="headerlink" title="Autofill raw password extraction"></a>Autofill raw password extraction</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"> uv run python -m cdp_session autofill  --host localhost --port 9001 --foreground</span><br><span class="line">[+] 2 URL(s) from open tabs</span><br><span class="line">[+] 2 URL(s) from chrome://history</span><br><span class="line">[+] 2 URL(s) from chrome://bookmarks</span><br><span class="line">[+] 2 candidate origin(s) to harvest</span><br><span class="line">[1/2] miss    https://bitwarden.com/  user=None pass=None</span><br><span class="line">[2/2] OK     /login  user=&#x27;**&#x27; pass=***</span><br><span class="line">[+] 1/2 plaintext passwords -&gt; creds.json</span><br></pre></td></tr></table></figure>
 
-<p>Compile then move the program to the Debuggee VM, then run it.</p>
-<p><img src="/images/apc-1.jpg" class="lazyload placeholder" data-srcset="/images/apc-1.jpg" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="Running result"></p>
-<p>Once we press “enter” , <code>QueueApc</code> routine function will be executed </p>
-<p><img src="/images/apc-2.png" class="lazyload placeholder" data-srcset="/images/apc-2.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="APC Running"></p>
-<h2 id="Placing-the-breakpoint"><a href="#Placing-the-breakpoint" class="headerlink" title="Placing the breakpoint"></a>Placing the breakpoint</h2><p>Now we have a program that queueing APC function, it’s time to place breakpoint and see what’s happening under the hood</p>
-<p>In my setup, i placed breakpoint at <code>NtQueueApcThreadEx2</code> ( I still don’t know why my breakpoint at <code>NtQueueApcThread</code> didn’t hit xD, so if you know, please let me know xD )</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; bp nt!NtQueueApcThreadEx2</span><br></pre></td></tr></table></figure>
-<p>After placing the breakpoint, hit “Enter” again to let the program jumps to <code>ApcRoutine</code> function. </p>
-<p>When the breakpoint hit, we need to verify if it was us triggering it, you can do this by typing <code>!thread</code> in Windbg to see of <code>Image</code> name match our program’s name.</p>
-<p><img src="/images/apc-3.png" class="lazyload placeholder" data-srcset="/images/apc-3.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="NtQueueApcThread breakpoint"></p>
-<p>My program’s name is: <code>ApcResearch.exe</code> which match in <code>!thread Image</code> </p>
-<p>Now, there are a lot going on in <code>nt!NtQueueApcThread</code> , we don’t have to go through every line of assembly, we want to get to the function call that transition us to Kernel mode <code>ntkrnlmp!KeInitializeApc (fffff80542d41e70)</code> </p>
-<p>Keep hitting “p” or step over until you get here.</p>
-<p><img src="/images/apc-4.png" class="lazyload placeholder" data-srcset="/images/apc-4.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="KeInitializeApc"></p>
-<h3 id="KeInitializeApc"><a href="#KeInitializeApc" class="headerlink" title="KeInitializeApc"></a>KeInitializeApc</h3><p>Knowing function signature is important to understand the logic of it and its flow, I take the <code>KeInitializeApc</code> function’s logic and params from <a target="_blank" rel="noopener" href="https://github.com/ayyucedemirbas/Windows-Research-Kernel-WRK-">here</a> ( which is a good resource to look into Windows kernel code logic )</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTKERNELAPI</span></span><br><span class="line"><span class="function">VOID</span></span><br><span class="line"><span class="function"><span class="title">KeInitializeApc</span> <span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    __out PRKAPC Apc,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in PRKTHREAD Thread,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in KAPC_ENVIRONMENT Environment,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in PKKERNEL_ROUTINE KernelRoutine,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt PKRUNDOWN_ROUTINE RundownRoutine,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt PKNORMAL_ROUTINE NormalRoutine,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt KPROCESSOR_MODE ProcessorMode,</span></span></span><br><span class="line"><span class="params"><span class="function">    __in_opt PVOID NormalContext</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Apc-&gt;Thread = Thread;</span><br><span class="line">    Apc-&gt;KernelRoutine = KernelRoutine;</span><br><span class="line">    Apc-&gt;RundownRoutine = RundownRoutine;</span><br><span class="line">    Apc-&gt;NormalRoutine = NormalRoutine;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">ARGUMENT_PRESENT</span>(NormalRoutine)) &#123;</span><br><span class="line">        Apc-&gt;ApcMode = ApcMode;</span><br><span class="line">        Apc-&gt;NormalContext = NormalContext;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Apc-&gt;ApcMode = KernelMode;</span><br><span class="line">        Apc-&gt;NormalContext = NIL;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Apc-&gt;Inserted = FALSE;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">    &#125;;</span><br></pre></td></tr></table></figure>
-
-<p>In this function, we pay attention to the first 2 params: Apc and Thread , which will be the <strong>Apc func</strong> and <strong>our Thread</strong>, we can extract these values out of registers in Windbg ( in x64 calling conventions, <strong>first 4 params will always be in these registers  RCX, RDX, R8 and R9</strong> ) </p>
-<p>In Windbg:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">r @rcx</span><br><span class="line">r @rdx</span><br></pre></td></tr></table></figure>
-
-<p><img src="/images/apc-5.png" class="lazyload placeholder" data-srcset="/images/apc-5.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="APC params"></p>
-<p>So here we will have <code>Apc=ffffcf0a02f18f80</code> and <code>Thread=ffffcf0a0282a080</code> , we will examine the <strong>Thread</strong> first by typing: </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dt _KTHREAD ffffcf0a0282a080</span><br></pre></td></tr></table></figure>
-
-<p><img src="/images/apc-6.png" class="lazyload placeholder" data-srcset="/images/apc-6.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_KTHREAD"></p>
-<p>the <code>_KTHREAD</code> structure is quite huge, I will focus on 4 fields that I think it useful for this blog post ( <strong>Alertable, ApcQueueable, Running, Process</strong> ), but feel free to examine it and explore it yourself. </p>
-<p>I will briefly explain those fields and its meaning:</p>
+<p>Autofill in browser does not work if the tab is in background in my case ( let me know if you can find a way ) and if the tab does not have any input. So we have to:</p>
 <ul>
-<li><code>Running: 0</code> ⇒ not yet running</li>
-<li><code>Alertable: 0x1</code> ⇒ Thread is in <strong>alertable</strong> state, which is a crucial part for APC execution</li>
-<li><code>ApcQueueable: 0x1</code> ⇒ can be APC queued</li>
+<li>Bring tab to the front</li>
+<li>Focus &#x2F; dispatch input</li>
 </ul>
-<p>We can verify again that it’s coming from our process:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!process 0xffffcf0a`0174608</span><br></pre></td></tr></table></figure>
-
-<p><img src="/images/apc-7.png" class="lazyload placeholder" data-srcset="/images/apc-7.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_EPROCESS"></p>
-<p>That’s for the <code>_KTHREAD</code> structure, now let’s look at <code>_KAPC</code> structure</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dt _KAPC ffffcf0a02f18f80</span><br></pre></td></tr></table></figure>
-
-<p><img src="/images/apc-8.png" class="lazyload placeholder" data-srcset="/images/apc-8.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_KAPC"></p>
-<p>The fields we going to pay attention to are:</p>
+<p>It’s a little bit noisy, but I haven’t found any other way to trigger autofill from browser. </p>
+<h2 id="2-Taking-screenshots-and-live-cam"><a href="#2-Taking-screenshots-and-live-cam" class="headerlink" title="2.  Taking screenshots and live cam"></a>2.  Taking screenshots and live cam</h2><p>The live camera features is not ideal for Red teaming objectives because you cannot remove the <strong>red-dot</strong> which make it not an OPSEC choice.</p>
+<p>We can take screenshot of a whole desktop ( not just tab ) by using <code>chrome://feedback/</code> .</p>
+<h2 id="3-Networking-as-the-victim"><a href="#3-Networking-as-the-victim" class="headerlink" title="3. Networking as the victim"></a>3. Networking as the victim</h2><p>We can basically <strong>“Burp-ify”</strong> victim’s browser by placing us as a Proxy in the middle, we can route all networks in browser’s victim to our port back to our server. However it would requires sleep time for implant to 0 ~ interactive.</p>
+<p>We can:</p>
 <ul>
-<li>Type</li>
-<li>Thread: </li>
-<li>ApcMode</li>
-<li>SystemArgument1 and SystemArgument2</li>
-<li>Inserted</li>
+<li>Intercept requests</li>
+<li>Change responses&#x2F;Change requests</li>
+<li>Add tracking headers </li>
+<li>Internal networking browsing</li>
+<li>… You named it</li>
 </ul>
-<p>Now, press “p” or step over in Windbg to move past the call to <code>nt!KeInitializeApc</code> , display type <code>_KAPC</code> again and observe how the type values has changed: </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dt _KAPC ffffcf0a02f18f80</span><br></pre></td></tr></table></figure>
-
-<p><img src="/images/apc-9.png" class="lazyload placeholder" data-srcset="/images/apc-9.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="_KAPC changed"></p>
-<p>Noticeable changes:</p>
-<ul>
-<li><code>Type</code>: 0x12</li>
-<li><code>Thread</code>: now the thread value is our <code>_KTHREAD</code> from above ( <code>ffffcf0a0282a080</code> ). This would be the thread where APC going to queue</li>
-<li><code>ApcMode</code>: 1 ⇒ User mode</li>
-<li><code>SystemArgument1/2</code>: We didnot pass any arguments so it’s null</li>
-<li><code>Inserted</code>: 0 ⇒ this is the field indicate if the Apc is added to the list yet, that would lead to another function we need to explore: <code>KeInsertQueueApc</code></li>
+<p>In my opinion, the most impactful thing you can have here is <strong>browse as the victim</strong> capability. Imagine just open your browser as the victim. Have all there saved cookies&#x2F;credentials with no need for any 2FAs or passwords. ;)</p>
+<p>Like a <a target="_blank" rel="noopener" href="https://github.com/mandatoryprogrammer/cursedchrome">CursedChrome</a> style</p>
+<h1 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h1><p>CDP is a powerful tool for post-exploitation. By enabling CDP from within running chrome processes, we can do a lot of offensive tasks and behave like a normal user behavior.</p>
+<p>The source code is still in development, so it won’t be available. But I hope I can make it available on Github soon</p>
+<p>Until next time :) </p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://deathflamingo.com/blog/cdp_enabler/">https://deathflamingo.com/blog/cdp_enabler/</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/mandatoryprogrammer/cursedchrome">https://github.com/mandatoryprogrammer/cursedchrome</a></li>
 </ul>
-<hr>
-<p><strong>To wrap up till now, we have:</strong> </p>
-<ul>
-<li>The journey of <code>QueueUserApc</code> from user-mode to kernel-mode</li>
-<li>Kernel debugging setup</li>
-<li><code>KeInitializeApc</code> function</li>
-<li>Examination of <code>_KTHREAD</code> and <code>_KAPC</code> structures</li>
-</ul>
-<p>I will save <code>KeInsertQueueApc</code> for part 2, we will see how <code>Inserted</code> field changes in <code>_KAPC</code> . I hope this little intro gave you something informative and I hope you enjoy the read.</p>
-<p>Happy hacking everyone !.</p>
 
       </div>
       <div class="post-tags-categories">
         
         <div class="tags">
           
-            <a href="/tags/Windows-Internal-Malware-Development/" class="">
-              Windows-Internal, Malware-Development
+            <a href="/tags/redteam/" class="">
+              redteam
             </a>
           
         </div>
@@ -642,39 +586,21 @@
 
 
 
-  
-  <div class="post-nav-prev post-nav-item">
-    <div class="post-nav-img" style="background-size: cover; 
-      background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="/images/MFT_table_1.png" class="lazyload placeholder" data-srcset="/images/MFT_table_1.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="">
-    </div>
-    <a href="/2026/03/07/About-NTFS-and-MFT-Parsing/" class="post-nav-link">
-      <div class="title">
-        <i class="fas fa-angle-left"></i> Prev:
-        <div class="title-text">About NTFS and MFT Parsing</div>
-      </div>
-      
-      <!-- <div class="content">
-        IntroductionThe topic of Window NT File System ( NTFS ) is n
-      </div> -->
-    </a>
-  </div>
-
 
 
   
   <div class="post-nav-next post-nav-item">
     <div class="post-nav-img" style="background-size: cover; 
       background-position: center center;">
-      <img class="lazyload lazyload placeholder" src="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" class="lazyload placeholder" data-srcset="https://pic2.zhimg.com/80/v2-63bbdb5b76b8d349ad35ff4281efbd37_1440w.webp" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
+      <img class="lazyload lazyload placeholder" src="/images/MFT_table_1.png" class="lazyload placeholder" data-srcset="/images/MFT_table_1.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" src="" alt="">
     </div>
-    <a href="/2023/05/22/From-RCE-to-owning-entire-cloud-infrastructure/" class="post-nav-link">
+    <a href="/2026/03/07/About-NTFS-and-MFT-Parsing/" class="post-nav-link">
       <div class="title">
         Next: <i class="fas fa-angle-right"></i>
-        <div class="title-text">Red team: Journey from RCE to have total control of cloud infrastructure </div>
+        <div class="title-text">About NTFS and MFT Parsing</div>
       </div>
       <!-- <div class="content">
-        DescriptionIn my latest red team engagement for a very large
+        IntroductionThe topic of Window NT File System ( NTFS ) is n
       </div> -->
     </a>
   </div>
@@ -884,7 +810,7 @@
   <div class='content'>
     <div class="toc-main">
       <div class="toc-content">
-        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#APC-Asynchronous-Procedure-Calls"><span class="toc-text">APC - Asynchronous Procedure Calls</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Setup-Kernel-debugger"><span class="toc-text">Setup Kernel debugger</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dynamic-Debugging-Kernel"><span class="toc-text">Dynamic Debugging Kernel</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Placing-the-breakpoint"><span class="toc-text">Placing the breakpoint</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#KeInitializeApc"><span class="toc-text">KeInitializeApc</span></a></li></ol></li></ol></li></ol> -->
+        <!-- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Enabling-the-debugging-protocol-in-memory"><span class="toc-text">Enabling the debugging protocol in memory</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Red-team-applications"><span class="toc-text">Red team applications</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Data-extractions"><span class="toc-text">1. Data extractions</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Cookies"><span class="toc-text">Cookies</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Tab-extensions-management"><span class="toc-text">Tab, extensions management</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Fingerprint-installed-extensions-and-extract-from-password-managers"><span class="toc-text">Fingerprint installed extensions and extract from password managers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Autofill-raw-password-extraction"><span class="toc-text">Autofill raw password extraction</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Taking-screenshots-and-live-cam"><span class="toc-text">2.  Taking screenshots and live cam</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Networking-as-the-victim"><span class="toc-text">3. Networking as the victim</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Conclusion"><span class="toc-text">Conclusion</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-text">Reference</span></a></li></ol> -->
         <div class="toc"></div>
       </div>
     </div>
